@@ -14,7 +14,7 @@ $result = mysql_query("SELECT id, type FROM recipes, recipe_types WHERE recipes.
 $num_recipes = mysql_num_rows($result);
 ?>
 
-<h2>Welcome to Recipe Database 0.2</h2>
+<h2>Welcome to Recipe Database 1.0</h2>
 
 <p>&nbsp;There
 <?php
