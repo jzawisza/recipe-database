@@ -76,6 +76,8 @@ CREATE TABLE `recipes` (
   `ingredients` text,
   `preparation` text,
   `notes` text,
+  `serves` tinyint(3) unsigned DEFAULT NULL,
+  `calories_per_serving` smallint(5) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=841 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

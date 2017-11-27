@@ -39,6 +39,8 @@ if($_POST['id'] and $_POST['update_recipe']) {
   }
   $ingredients = filter_input(INPUT_POST,"ingredients",FILTER_SANITIZE_STRING);
   $preparation = filter_input(INPUT_POST,"preparation",FILTER_SANITIZE_STRING);
+  $serves = filter_input(INPUT_POST,"serves",FILTER_VALIDATE_INT);
+  $calories = filter_input(INPUT_POST,"calories_per_serving",FILTER_VALIDATE_INT);
   $notes = filter_input(INPUT_POST,"notes",FILTER_SANITIZE_STRING);
 
   if(!$id) {
@@ -59,20 +61,32 @@ if($_POST['id'] and $_POST['update_recipe']) {
   else if($_POST['preparation'] && !$preparation) {
     die("<p>Error filtering recipe preparation!</p>\n");
   }
+  else if($_POST['serves'] && !$serves) {
+    die("<p>Error filtering number served!</p>\n");
+  }
+  else if($_POST['calories_per_serving'] && !$calories) {
+    die("<p>Error filtering calories per serving!</p>\n");
+  }
   else if($_POST['notes'] && !$notes) {
     die("<p>Error filtering recipe notes!</p>\n");
   }
 
   // Add the recipe to the database
-  $query = sprintf("UPDATE recipes SET tid = %d, has_tried = %d, source = '%s', title = '%s', ingredients = '%s', preparation = '%s', notes = '%s' WHERE ID = %d",
+  $query = sprintf("UPDATE recipes SET tid = %d, has_tried = %d, source = '%s', title = '%s', ingredients = '%s', preparation = '%s', notes = '%s'",
 		   $recipe_type,
 		   $has_tried,
 		   mysql_real_escape_string($source),
 		   mysql_real_escape_string($title),
 		   mysql_real_escape_string($ingredients),
 		   mysql_real_escape_string($preparation),
-		   mysql_real_escape_string($notes),
-		   $id);
+		   mysql_real_escape_string($notes));
+    if($serves) {
+      $query .= sprintf(", serves = %d", $serves);
+    }
+    if($calories) {
+      $query .= sprintf(", calories_per_serving = %d", $calories);
+    }
+    $query .= sprintf(" WHERE id = %d", $id);
   $result = mysql_query($query);
 
   if(!$result) {
@@ -109,6 +123,8 @@ else if($_POST['id']) {
   $ingredients = $row['ingredients'];
   $preparation = $row['preparation'];
   $notes = $row['notes'];
+  $serves = $row['serves'];
+  $calories = $row['calories_per_serving'];
 
   mysql_free_result($result);
 }
@@ -128,6 +144,8 @@ else if($_POST['title']) {
   }
   $ingredients = filter_input(INPUT_POST,"ingredients",FILTER_SANITIZE_STRING);
   $preparation = filter_input(INPUT_POST,"preparation",FILTER_SANITIZE_STRING);
+  $serves = filter_input(INPUT_POST,"serves",FILTER_VALIDATE_INT);
+  $calories = filter_input(INPUT_POST,"calories_per_serving",FILTER_VALIDATE_INT);
   $notes = filter_input(INPUT_POST,"notes",FILTER_SANITIZE_STRING);
 
   if($_POST['type'] && !$recipe_type) {
@@ -145,19 +163,41 @@ else if($_POST['title']) {
   else if($_POST['preparation'] && !$preparation) {
     die("<p>Error filtering recipe preparation!</p>\n");
   }
+  else if($_POST['serves'] && !$serves) {
+    die("<p>Error filtering number served!</p>\n");
+  }
+  else if($_POST['calories_per_serving'] && !$calories) {
+    die("<p>Error filtering calories per serving!</p>\n");
+  }
   else if($_POST['notes'] && !$notes) {
     die("<p>Error filtering recipe notes!</p>\n");
   }
 
   // Add the recipe to the database
-  $query = sprintf("INSERT INTO recipes(tid, has_tried, source, title, ingredients, preparation, notes) VALUES(%d, %d, '%s', '%s', '%s', '%s', '%s')",
-		   $recipe_type,
-		   $has_tried,
-		   mysql_real_escape_string($source),
-		   mysql_real_escape_string($title),
-		   mysql_real_escape_string($ingredients),
-		   mysql_real_escape_string($preparation),
-		   mysql_real_escape_string($notes));
+  $column_names = "tid, has_tried, source, title, ingredients, preparation, notes";
+  if($serves) {
+    $column_names .= ", serves";
+  }
+  if($calories) {
+    $column_names .= ", calories_per_serving";
+  }
+
+  $column_values = sprintf("%d, %d, '%s', '%s', '%s', '%s', '%s'",
+       $recipe_type,
+       $has_tried,
+       mysql_real_escape_string($source),
+       mysql_real_escape_string($title),
+       mysql_real_escape_string($ingredients),
+       mysql_real_escape_string($preparation),
+       mysql_real_escape_string($notes));
+  if($serves) {
+    $column_values .= sprintf(", %d", $serves);
+  }
+  if($calories) {
+    $column_values .= sprintf(", %d", $calories);
+  }
+  
+  $query = "INSERT INTO recipes(" . $column_names . ") VALUES(" . $column_values . ")";
   $result = mysql_query($query);
 
   if(!$result) {
@@ -177,6 +217,8 @@ else if($_POST['title']) {
   unset($ingredients);
   unset($preparation);
   unset($notes);
+  unset($serves);
+  unset($calories);
 }
 
 // Display the main page
@@ -267,6 +309,32 @@ if($source) {
   $value_str = " value=\"$source\"";
 }
 echo "<td><input type=\"text\" size=\"75\" name=\"source\"" . $value_str . "></input></td>\n";
+
+echo <<<END
+</tr>
+
+<tr>
+<td class="recipe" width="25%">Serves</td>
+
+END;
+
+if($serves) {
+  $value_str = " value=\"$serves\"";
+}
+echo "<td><input type=\"number\" size=\"5\" name=\"serves\"" . $value_str . "></input></td>\n";
+
+echo <<<END
+</tr>
+
+<tr>
+<td class="recipe" width="25%">Calories/Serving</td>
+
+END;
+
+if($calories) {
+  $value_str = " value=\"$calories\"";
+}
+echo "<td><input type=\"number\" size=\"5\" name=\"calories_per_serving\"" . $value_str . "></input></td>\n";
 
 echo <<<END
 </tr>

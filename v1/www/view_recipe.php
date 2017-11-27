@@ -21,7 +21,7 @@ if($_GET['id']) {
     die("<p>Error validating recipe ID!</p>\n");
   }
 
-  $query = "SELECT title, source, ingredients, preparation, notes FROM recipes WHERE id = " . $id;
+  $query = "SELECT title, source, ingredients, preparation, notes, serves, calories_per_serving FROM recipes WHERE id = " . $id;
   $result = mysql_query($query) or die ("Could not look up recipe: " . mysql_error());
   $row = mysql_fetch_array($result);
 
@@ -32,7 +32,9 @@ if($_GET['id']) {
     echo "<p><b>" . strtoupper($row['title']) . "</b></p>\n\n";
   }
 
-  echo "<p><b>Source:</b> " . $row['source'] . "</p>\n";
+  echo "<p><b>Source:</b> " . $row['source'] . "</br>\n";
+  echo "<b>Serves:</b> " . $row['serves'] . "</br>\n";
+  echo "<b>Calories/Serving:</b> " . $row['calories_per_serving'] . "</p>\n";
 
   echo "<p><b>Ingredients</b><br/>\n";
   echo nl2br($row['ingredients']) . "</p>\n";
