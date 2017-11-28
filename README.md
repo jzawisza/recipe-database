@@ -20,3 +20,6 @@ To deploy the application, simply copy all the files in the `www` directory to t
 $con = mysql_connect("localhost","FILL_IN_USERNAME","FILL_IN_PASSWORD");
 ```
 You'll need to replace `FILL_IN_USERNAME` and `FILL_IN_PASSWORD` with the real username and password before deployment.
+
+## Scripts
+The Python scripts require Python 2.7 or greater, and use the `mysql-connector-python` library, which can be downloaded from https://dev.mysql.com/downloads/connector/python/.  You'll have to install via RPM if you're using AWS: this library doesn't appear to be available via yum.
