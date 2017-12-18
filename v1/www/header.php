@@ -8,6 +8,9 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type" />
   <meta content="Jim Zawisza" name="author" />
   <meta content="Recipe database page" name="description" />
+  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.min.js"></script>
 </head>
 
 <body>
@@ -16,6 +19,7 @@ PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
       <ul class="tab">
           <li><a href="index.php" class="tab">Home</a></li>
 	  <li><a href="add_recipe.php" class="tab">Add Recipe</a></li>
+    <li><a href="import_recipe.php" class="tab">Import Recipe</a></li>
 	  <li><a href="cookbooks.php" class="tab">Cookbooks</a></li>
       </ul>
     </div>
