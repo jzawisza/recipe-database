@@ -5,12 +5,24 @@ define("RECIPE_DATE_ELEMENT", "//span[@class='recipe-date']");
 define("RECIPE_STEP_ELEMENT", "//div[@class='step']/p[2]");
 define("TYPE_KEY", "@type");
 define("TYPE_VALUE_RECIPE", "Recipe");
-define("TITLE_KEY", "name");
 define("INGREDIENT_KEY", "recipeIngredient");
 define("SERVES_KEY", "recipeYield");
 define("SERVES_REGEX", "/Serves (\d+)/");
 define("NUTRITION_KEY", "nutrition");
 define("CALORIES_KEY", "calories");
+
+// Given a Cooking Light recipe URL, extract the recipe title,
+// e.g. http://www.cookinglight.com/recipes/banana-walnut-bread => Banana Walnut Bread
+function getTitleFromUrl($recipe_url) {
+	$url_parts = explode("/", parse_url($recipe_url, PHP_URL_PATH));
+	$last_url_part_index = count($url_parts) - 1;
+	$recipe_words = explode("-", $url_parts[$last_url_part_index]);
+	$title = "";
+	foreach($recipe_words as $word) {
+		$title .= $word . " ";
+	}
+	return trim(ucwords($title));
+}
 
 require("header.php");
 
@@ -35,6 +47,9 @@ if($_POST['recipe_url']) {
     $has_tried = 0;
   }
 
+  // Get title from the recipe URL itself
+  $title = getTitleFromUrl($recipe_url);
+
   $doc = new DOMDocument;
   libxml_use_internal_errors(true);
   $url_contents = file_get_contents($recipe_url);
@@ -46,7 +61,7 @@ if($_POST['recipe_url']) {
   if(is_null($date_list)) {
     die('<p>Error getting recipe date</p>');
   }
-  $recipe_date = $date_list->item(0)->nodeValue;
+  $recipe_date = trim($date_list->item(0)->nodeValue);
   $source = COOKING_LIGHT . ", " . $recipe_date;
 
   // Get preparation by combining steps from HTML
@@ -77,7 +92,6 @@ if($_POST['recipe_url']) {
   foreach($recipe_json as $key=>$value) {
     $array_data = $value;
     if(is_array($array_data) && !strcmp($array_data[TYPE_KEY], TYPE_VALUE_RECIPE)) {
-      $title = $array_data[TITLE_KEY];
       $ingredients = "";
       $ingredient_array = $array_data[INGREDIENT_KEY];
       for($i = 0; $i < count($ingredient_array); $i++) {
