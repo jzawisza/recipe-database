@@ -2,7 +2,7 @@
 define("COOKING_LIGHT", "Cooking Light");
 define("RECIPE_JSON_ELEMENT", "//script[@type='application/ld+json']");
 define("RECIPE_DATE_ELEMENT", "//span[@class='recipe-date']");
-define("RECIPE_STEP_ELEMENT", "//div[@class='step']/p[2]");
+define("RECIPE_STEP_ELEMENT", "//div[@class='step']/p");
 define("TYPE_KEY", "@type");
 define("TYPE_VALUE_RECIPE", "Recipe");
 define("INGREDIENT_KEY", "recipeIngredient");
