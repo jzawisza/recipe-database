@@ -3,10 +3,12 @@ import PropTypes from 'prop-types';
 import TextField from '@material-ui/core/TextField';
 import { withStyles } from '@material-ui/core/styles';
 import { Grid } from '@material-ui/core';
+import InputLabel from '@material-ui/core/InputLabel';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import {debounce} from 'throttle-debounce';
+import TagBar from './TagBar';
 
 const styles = theme => ({
     root: {
@@ -18,6 +20,9 @@ const styles = theme => ({
       alignItems: 'baseline',
       justifyContent: 'space-evenly',
       maxWidth: 1000
+    },
+    tagContainer: {
+        paddingTop: 20
     }
   });
 
@@ -96,6 +101,11 @@ class Recipe extends Component {
                                 onChange={this.handleChange('calories').bind(this)}
                                 margin="normal"
                             />
+                        </Grid>
+
+                        <Grid item xs={12} className={classes.tagContainer}>
+                            <InputLabel>Tags</InputLabel>
+                            <TagBar />
                         </Grid>
 
                         <Grid item xs={12}>
