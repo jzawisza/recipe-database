@@ -165,7 +165,7 @@ class Recipe extends Component {
                           aria-label="Close"
                           color="inherit"
                           className={classes.close}
-                          onClick={this.handleClose}
+                          onClick={this.handleCloseSaveSnackbar}
                         >
                           <CloseIcon />
                         </IconButton>
