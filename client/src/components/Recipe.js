@@ -9,6 +9,7 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import {debounce} from 'throttle-debounce';
 import TagBar from './TagBar';
+import RecipeLinks from './RecipeLinks';
 
 const styles = theme => ({
     root: {
@@ -21,7 +22,7 @@ const styles = theme => ({
       justifyContent: 'space-evenly',
       maxWidth: 1000
     },
-    tagContainer: {
+    componentContainer: {
         paddingTop: 20
     }
   });
@@ -103,9 +104,14 @@ class Recipe extends Component {
                             />
                         </Grid>
 
-                        <Grid item xs={12} className={classes.tagContainer}>
+                        <Grid item xs={12} className={classes.componentContainer}>
                             <InputLabel>Tags</InputLabel>
                             <TagBar />
+                        </Grid>
+
+                        <Grid item xs={12} className={classes.componentContainer}>
+                            <InputLabel>Related Recipes</InputLabel>
+                            <RecipeLinks />
                         </Grid>
 
                         <Grid item xs={12}>

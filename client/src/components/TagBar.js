@@ -1,14 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Autosuggest from 'react-autosuggest';
-import match from 'autosuggest-highlight/match';
-import parse from 'autosuggest-highlight/parse';
 import { withStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
-import TextField from '@material-ui/core/TextField';
-import Paper from '@material-ui/core/Paper';
-import MenuItem from '@material-ui/core/MenuItem';
 import { Grid } from '@material-ui/core';
+import { renderInput, renderSuggestion, renderSuggestionsContainer, getSuggestionValue } from './utils/AutoCompleteUtils';
 
 // NOTE: much of the code here comes from Material UI's sample implementation
 // of react-autosuggest at https://material-ui.com/demos/autocomplete/
@@ -45,60 +41,6 @@ const styles = theme => ({
       listStyleType: 'none',
     }
   });
-
- function renderInput(inputProps) {
-   const { classes, ref, ...other } = inputProps;
-  
-   return (
-     <TextField
-       fullWidth       
-       InputProps={{
-         inputRef: ref,
-         classes: {
-           input: classes.input,
-         },
-         ...other,
-       }}
-     />
-   );
- }
-
- function renderSuggestion(suggestion, { query, isHighlighted }) {
-   const matches = match(suggestion.tagName, query);
-   const parts = parse(suggestion.tagName, matches);
-  
-   return (
-     <MenuItem selected={isHighlighted} component="div">
-       <div>
-         {parts.map((part, index) => {
-           return part.highlight ? (
-             <span key={String(index)} style={{ fontWeight: 'bold' }}>
-               {part.text}
-             </span>
-           ) : (
-             <strong key={String(index)} style={{ fontWeight: 'normal' }}>
-               {part.text}
-             </strong>
-           );
-         })}
-       </div>
-     </MenuItem>
-   );
- }
-
-function renderSuggestionsContainer(options) {
-  const { containerProps, children } = options;
-  
-  return (
-    <Paper {...containerProps} square>
-      {children}
-    </Paper>
-  );
-}
-  
-function getSuggestionValue(suggestion) {
-  return suggestion.tagName;
-}
 
 class TagBar extends Component {
     // TODO: replace this test data with real data
@@ -183,12 +125,14 @@ class TagBar extends Component {
         // Add item to list of selected tags
         currentTags.push(newSuggestion);
         // Remove item from list of non-selected tags unless it's a new tag
-        // (and therefore wasn't part of that list int he first place)
+        // (and therefore wasn't part of that list in the first place)
         let tagToDeleteIndex = allOtherTags.indexOf(newSuggestion);
         if (tagToDeleteIndex !== -1) {
           allOtherTags.splice(tagToDeleteIndex, 1);
         }
-        return { currentTags, allOtherTags };
+        let newState = { currentTags, allOtherTags }
+        newState['tagValue'] = '';
+        return newState;
       });
     };
     
