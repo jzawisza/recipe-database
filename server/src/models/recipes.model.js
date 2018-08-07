@@ -16,7 +16,7 @@ module.exports = function (app) {
   }, {
     timestamps: true,
     createdAt: 'creation_time',
-    updatedAt: 'modification_time',
+    updatedAt: 'modified_time',
 
     hooks: {
       beforeCount(options) {

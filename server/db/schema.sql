@@ -34,55 +34,61 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 -- Sequences
 --
 CREATE SEQUENCE recipe_id_seq;
+CREATE SEQUENCE recipe_link_id_seq;
 CREATE SEQUENCE tag_id_seq;
 CREATE SEQUENCE user_id_seq;
+CREATE SEQUENCE user_favorite_id_seq;
 
 --
 -- Tables
 --
 CREATE TABLE recipes (
-       id bigint NOT NULL DEFAULT NEXTVAL('recipe_id_seq') CONSTRAINT recipe_pkey PRIMARY KEY,
-       source text,
-       title text NOT NULL,
-       ingredients text NOT NULL,
-       preparation text NOT NULL,
-       notes text,
-       serves integer,
-       calories_per_serving integer,
-       data jsonb NOT NULL DEFAULT '{}'::jsonb,
-       creation_time timestamp with time zone NOT NULL,
-       modified_time timestamp with time zone NOT NULL      
+      id bigint NOT NULL DEFAULT NEXTVAL('recipe_id_seq') CONSTRAINT recipe_pkey PRIMARY KEY,
+      source text,
+      title text NOT NULL,
+      ingredients text NOT NULL,
+      preparation text NOT NULL,
+      notes text,
+      serves integer,
+      calories_per_serving integer,
+      data jsonb NOT NULL DEFAULT '{}'::jsonb,
+      creation_time timestamp with time zone NOT NULL,
+      modified_time timestamp with time zone NOT NULL
 );
 
 CREATE TABLE recipe_links (
+      id bigint NOT NULL DEFAULT NEXTVAL('recipe_link_id_seq') CONSTRAINT recipe_link_pkey PRIMARY KEY,
       source_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
       dest_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
       UNIQUE(source_id, dest_id)
 );
 
 CREATE TABLE tags (
-       id bigint NOT NULL DEFAULT NEXTVAL('tag_id_seq') CONSTRAINT tags_pkey PRIMARY KEY,
-       name text NOT NULL UNIQUE
+      id bigint NOT NULL DEFAULT NEXTVAL('tag_id_seq') CONSTRAINT tags_pkey PRIMARY KEY,
+      name text NOT NULL UNIQUE
 );
 
 CREATE TABLE users (
-       id bigint NOT NULL DEFAULT NEXTVAL('user_id_seq') CONSTRAINT user_pkey PRIMARY KEY,
-       username text NOT NULL UNIQUE,
-       display_name text NOT NULL
+      id bigint NOT NULL DEFAULT NEXTVAL('user_id_seq') CONSTRAINT user_pkey PRIMARY KEY,
+      username text NOT NULL UNIQUE,
+      display_name text NOT NULL
 );
 
 CREATE TABLE user_favorites (
-       user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-       recipe_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
-       UNIQUE (user_id, recipe_id)
+      id bigint NOT NULL DEFAULT NEXTVAL('user_favorite_id_seq') CONSTRAINT user_favorite_pkey PRIMARY KEY,
+      user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      recipe_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+      UNIQUE (user_id, recipe_id)
 );
 
 --
 -- Sequence ownership
 --
 ALTER SEQUENCE recipe_id_seq OWNED BY recipes.id;
+ALTER SEQUENCE recipe_link_id_seq OWNED BY recipe_links.id;
 ALTER SEQUENCE tag_id_seq OWNED BY tags.id;
 ALTER SEQUENCE user_id_seq OWNED BY users.id;
+ALTER SEQUENCE user_favorite_id_seq OWNED BY user_favorites.id;
 
 --
 -- Default user
