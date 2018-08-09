@@ -45,7 +45,7 @@ CREATE SEQUENCE user_favorite_id_seq;
 CREATE TABLE recipes (
       id bigint NOT NULL DEFAULT NEXTVAL('recipe_id_seq') CONSTRAINT recipe_pkey PRIMARY KEY,
       source text,
-      title text NOT NULL,
+      title text NOT NULL UNIQUE,
       ingredients text NOT NULL,
       preparation text NOT NULL,
       notes text,

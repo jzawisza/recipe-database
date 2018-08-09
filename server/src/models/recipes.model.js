@@ -6,7 +6,7 @@ module.exports = function (app) {
   const recipes = sequelizeClient.define('recipes', {
     id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
     source: DataTypes.TEXT,
-    title: { type: DataTypes.TEXT, allowNull: false },
+    title: { type: DataTypes.TEXT, allowNull: false, unique: true },
     ingredients: { type: DataTypes.TEXT, allowNull: false },
     preparation: { type: DataTypes.TEXT, allowNull: false },
     notes: DataTypes.TEXT,
