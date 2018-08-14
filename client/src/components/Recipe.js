@@ -23,7 +23,7 @@ const styles = theme => ({
       maxWidth: 1000
     },
     componentContainer: {
-        paddingTop: 20
+        paddingTop: 50
     }
   });
 

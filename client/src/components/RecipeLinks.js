@@ -6,6 +6,7 @@ import { Grid } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import IconButton from '@material-ui/core/IconButton';
 import { renderInput, renderSuggestion, renderSuggestionsContainer, getSuggestionValue } from './utils/AutoCompleteUtils';
+import '../App.css';
 
 
 const styles = theme => ({
@@ -30,7 +31,11 @@ const styles = theme => ({
       margin: 0,
       padding: 0,
       listStyleType: 'none',
-    }
+    },
+    smallIcon: {
+        height: 24,
+        width: 24
+    },
 });
 
 class RecipeLinkItem extends Component {
@@ -40,15 +45,17 @@ class RecipeLinkItem extends Component {
     }
     
     render() {
-      return (
-        <li>
-            {this.props.value.title}
-                <IconButton aria-label="Delete" onClick={this.onClickCloseIcon}>
-                  <CloseIcon />
-                </IconButton>
-        </li>
-      );
-    }
+         return (
+            <div className="recipe-link">
+                <div className="recipe-link-item recipe-link-title">{this.props.value.title}</div>
+                <div className="recipe-link-item">
+                    <IconButton aria-label="Delete" onClick={this.onClickCloseIcon} className={this.props.className}>
+                        <CloseIcon />
+                    </IconButton>
+                </div>
+            </div>
+        );
+        }
 }
 
 class RecipeLinks extends Component {
@@ -59,7 +66,7 @@ class RecipeLinks extends Component {
         this.state = {
             linkedRecipes: [
                 {id: 2, title: 'Chicken Curry'},
-                {id: 3, title: 'Raita'}
+                {id: 3, title: 'Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita'}
             ],
             otherRecipes: [
                 {id: 4, title: 'Fettucine Alfredo'},
@@ -137,15 +144,15 @@ class RecipeLinks extends Component {
         const { classes } = this.props;
 
         const linksList = this.state.linkedRecipes.map(linkData =>
-            <RecipeLinkItem key={linkData.id} value={linkData} onDelete={this.deleteLinkItem} />
+            <RecipeLinkItem key={linkData.id} value={linkData} onDelete={this.deleteLinkItem} className={classes.smallIcon} />
         );
 
         return (
             <React.Fragment>
-              <Grid item xs={4}>
-                <ul>
+              <Grid item xs={8}>
+                <div className="recipe-link-list">
                     {linksList}
-                </ul>
+                </div>
               </Grid>
               <Grid item xs={12}>
                 <Autosuggest
@@ -165,7 +172,7 @@ class RecipeLinks extends Component {
                     onSuggestionSelected={this.handleSuggestionSelected}
                     inputProps={{
                     classes,
-                    placeholder: 'Enter recipe name',
+                    placeholder: 'Enter recipe to link to',
                     value: this.state.recipeLinkValue,
                     onChange: this.handleAutoSuggestChange,
                     }}
