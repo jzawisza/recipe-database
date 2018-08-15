@@ -3,13 +3,18 @@ import PropTypes from 'prop-types';
 import TextField from '@material-ui/core/TextField';
 import { withStyles } from '@material-ui/core/styles';
 import { Grid } from '@material-ui/core';
+import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControl from '@material-ui/core/FormControl';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import {debounce} from 'throttle-debounce';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
+
+const REQUIRED_FIELD_LABEL = "This field is required."
 
 const styles = theme => ({
     root: {
@@ -24,7 +29,10 @@ const styles = theme => ({
     },
     componentContainer: {
         paddingTop: 50
-    }
+    },
+    formControl: {
+        display: 'block'
+    },
   });
 
 class Recipe extends Component {
@@ -61,18 +69,28 @@ class Recipe extends Component {
         // let isEditing = this.props.edit;
         // let recipeId = this.props.id;
 
+        let showNameError = !this.state.name;
+        let nameErrorText = showNameError ? REQUIRED_FIELD_LABEL : "";
+        let showIngredientsError = !this.state.ingredients;
+        let ingredientsErrorText = showIngredientsError ? REQUIRED_FIELD_LABEL : "";
+        let showPreparationError = !this.state.preparation;
+        let preparationErrorText = showPreparationError ? REQUIRED_FIELD_LABEL : "";
+
         return (
             <div className={classes.root}>
                 <form className={classes.container}>
                     <Grid container spacing={0} wrap="wrap">
                         <Grid item xs={12}>
-                            <TextField
-                            id="name"
-                            label="Recipe name"
-                            onChange={this.handleChange('name').bind(this)}
-                            fullWidth
-                            margin="normal"
-                            />
+                            <FormControl className={classes.formControl} error={showNameError} aria-describedby="name-error-text">
+                                <InputLabel htmlFor="name">Recipe name</InputLabel>
+                                <Input
+                                    id="name"
+                                    onChange={this.handleChange('name').bind(this)}
+                                    fullWidth
+                                    margin="normal"
+                                />
+                                <FormHelperText id="name-error-text">{nameErrorText}</FormHelperText>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
@@ -115,27 +133,33 @@ class Recipe extends Component {
                         </Grid>
 
                         <Grid item xs={12}>
-                            <TextField
-                                id="ingredients"
-                                label="Ingredients"
-                                multiline
-                                rows="8"
-                                onChange={this.handleChange('ingredients').bind(this)}
-                                fullWidth
-                                margin="normal"
-                            />
+                            <FormControl className={classes.formControl} error={showIngredientsError} aria-describedby="ingredients-error-text">
+                                <InputLabel htmlFor="name">Ingredients</InputLabel>
+                                <Input
+                                    id="ingredients"
+                                    onChange={this.handleChange('ingredients').bind(this)}
+                                    fullWidth
+                                    margin="normal"
+                                    multiline
+                                    rows="8"
+                                />
+                                <FormHelperText id="ingredients-error-text">{ingredientsErrorText}</FormHelperText>
+                            </FormControl>
                         </Grid>
 
                         <Grid item xs={12}>
-                            <TextField
-                                id="preparation"
-                                label="Preparation"
-                                multiline
-                                rows="8"
-                                onChange={this.handleChange('preparation').bind(this)}
-                                fullWidth
-                                margin="normal"
-                            />
+                            <FormControl className={classes.formControl} error={showPreparationError} aria-describedby="preparation-error-text">
+                                <InputLabel htmlFor="name">Preparation</InputLabel>
+                                <Input
+                                    id="preparation"
+                                    onChange={this.handleChange('preparation').bind(this)}
+                                    fullWidth
+                                    margin="normal"
+                                    multiline
+                                    rows="8"
+                                />
+                                <FormHelperText id="preparation-error-text">{preparationErrorText}</FormHelperText>
+                            </FormControl>
                         </Grid>
 
                         <Grid item xs={12}>
