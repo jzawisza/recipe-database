@@ -11,6 +11,7 @@ import CreateIcon from '@material-ui/icons/Create';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AddRecipe from './components/tabs/AddRecipe';
 import ImportRecipe from './components/tabs/ImportRecipe';
+import SearchRecipes from './components/tabs/SearchRecipes';
 
 const styles = theme => ({
   root: {
@@ -54,7 +55,7 @@ class App extends Component {
           </Tabs>
         </AppBar>
 
-        {value === 0 && <TabContainer dir={theme.direction}>Search tab</TabContainer>}
+        {value === 0 && <TabContainer dir={theme.direction}><SearchRecipes /></TabContainer>}
         {value === 1 && <TabContainer dir={theme.direction}><AddRecipe /></TabContainer>}
         {value === 2 && <TabContainer dir={theme.direction}><ImportRecipe /></TabContainer>}
       </div>
