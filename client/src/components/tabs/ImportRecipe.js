@@ -9,10 +9,12 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Divider from '@material-ui/core/Divider';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Snackbar from '@material-ui/core/Snackbar';
+import Switch from '@material-ui/core/Switch';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import green from '@material-ui/core/colors/green';
@@ -82,7 +84,8 @@ class ImportRecipe extends Component {
         importing: false,
         importButtonText: IMPORT_BUTTON_DEFAULT_TEXT,
         importSnackbarVisible: false,
-        importSucceeded: true
+        importSucceeded: true,
+        importNotes: false
     }
 
     constructor(props) {
@@ -119,6 +122,12 @@ class ImportRecipe extends Component {
 
             return newState;
           });
+    }
+
+    handleImportNotesChange = event => {
+        this.setState({
+            importNotes: event.target.checked
+        });
     }
 
     handleImport = () => {
@@ -204,8 +213,25 @@ class ImportRecipe extends Component {
                         </Grid>
                         <Grid item xs={12} className={classes.tagContainer}>
                             <Divider className={classes.otherDivider} />
-                            <InputLabel>2) Specify tags for recipe (optional)</InputLabel>
+                            <InputLabel>2) Specify tags for recipe (optional):</InputLabel>
                             <TagBar />
+                        </Grid>
+                        <Grid item xs={10} className={classes.tagContainer}>
+                            <Divider className={classes.otherDivider} />
+                            <InputLabel>3) Select whether to include notes when importing the recipe (optional):</InputLabel>
+                            <FormControl className={classes.formControl}> 
+                                <FormControlLabel
+                                control={
+                                    <Switch
+                                    checked={this.state.importNotes}
+                                    onChange={this.handleImportNotesChange.bind('this')}
+                                    value='importNotes'
+                                    color='primary'
+                                    />
+                                }
+                                label="Include notes in import"
+                                />
+                            </FormControl>
                         </Grid>
                         <Grid item xs={3} className={classes.tagContainer}>
                             <FormControl className={classes.formControl} error={hasImportError} aria-describedby="import-error-text">

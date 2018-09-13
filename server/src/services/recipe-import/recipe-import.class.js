@@ -12,6 +12,7 @@ const SERVES_KEY = 'recipeYield';
 const INGREDIENTS_KEY = 'recipeIngredient';
 const NUTRITION_KEY = 'nutrition';
 const CALORIES_KEY = 'calories';
+const NOTES_KEY = 'description';
 const TYPE_VALUE_RECIPE = 'Recipe';
 const SERVES_REGEX = /Serves (\d+)/;
 
@@ -23,8 +24,8 @@ class Service {
 
   async create (data, params) {
     // url is guaranteed to be present because of the before hook:
-    // tags is optional
-    let { url, tags } = params.query;
+    // tags and importNotes are optional
+    let { url, tags, importNotes } = params.query;
     await rp(url)
       .then( function(htmlString) {
         // Get title from URL
@@ -58,6 +59,13 @@ class Service {
         }
         let caloriesPerServing = nutritionObj[CALORIES_KEY];
 
+        // Handle notes if requested
+        let notes = null;
+        // Query parameter values come in as strings, not booleans
+        if (importNotes === 'true') {
+          notes = recipeObj[NOTES_KEY];
+        }
+
         // Get preparation from HTML so we can break it into paragraphs:
         // the JSON has the data in a single paragraph
         let preparation = '';
@@ -72,7 +80,7 @@ class Service {
         // TODO: handle tags
 
         // Write to database
-        let recipeData = { source, title, ingredients, preparation, serves, caloriesPerServing };
+        let recipeData = { source, title, ingredients, preparation, serves, caloriesPerServing, notes };
         Service.recipeService.create(recipeData)
           .catch( function(err) {
             // TODO: figure out why this exception isn't propagating
