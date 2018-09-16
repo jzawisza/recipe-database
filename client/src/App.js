@@ -28,9 +28,15 @@ const styles = theme => ({
 class App extends Component {
   // The Link component from react-router doesn't play well with the Tab component
   // from Material UI, so we'll do history management programatically
+  // See: https://github.com/ReactTraining/react-router/blob/master/FAQ.md#how-do-i-access-the-history-object-outside-of-components
   changeTab = (event, value) => {
     history.push(`/${value}`);
   };
+
+  componentDidMount() {
+    // Automatically redirect to the search route when we load the app
+    history.push('/search');
+  }
 
   render() {
     const { classes, theme } = this.props;
