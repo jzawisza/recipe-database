@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Moment from 'react-moment';
+import { Link } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -313,7 +314,9 @@ class RecipeTable extends Component {
                           <Checkbox checked={isSelected} />
                         </TableCell>
                         <TableCell component="th" scope="row" padding="none">
-                          {n.title}
+                          <Link to={`/recipes/${n.id}`}>
+                            {n.title}
+                          </Link>
                         </TableCell>
                         <TableCell>{n.source}</TableCell>
                         <TableCell numeric>{n.serves}</TableCell>

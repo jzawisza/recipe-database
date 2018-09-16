@@ -87,7 +87,7 @@ class Recipe extends Component {
                                     id="name"
                                     onChange={this.handleChange('name').bind(this)}
                                     fullWidth
-                                    margin="normal"
+                                    margin="dense"
                                 />
                                 <FormHelperText id="name-error-text">{nameErrorText}</FormHelperText>
                             </FormControl>
@@ -139,7 +139,7 @@ class Recipe extends Component {
                                     id="ingredients"
                                     onChange={this.handleChange('ingredients').bind(this)}
                                     fullWidth
-                                    margin="normal"
+                                    margin="dense"
                                     multiline
                                     rows="8"
                                 />
@@ -154,7 +154,7 @@ class Recipe extends Component {
                                     id="preparation"
                                     onChange={this.handleChange('preparation').bind(this)}
                                     fullWidth
-                                    margin="normal"
+                                    margin="dense"
                                     multiline
                                     rows="8"
                                 />

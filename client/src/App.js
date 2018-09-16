@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { Router, Route } from 'react-router-dom';
+import history from './components/utils/History';
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
@@ -12,57 +14,59 @@ import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import AddRecipe from './components/tabs/AddRecipe';
 import ImportRecipe from './components/tabs/ImportRecipe';
 import SearchRecipes from './components/tabs/SearchRecipes';
+import ViewRecipe from './components/tabs/ViewRecipe';
 
 const styles = theme => ({
   root: {
     backgroundColor: theme.palette.background.paper
   },
+  viewTab: {
+    display: 'none'
+  }
 });
 
 class App extends Component {
-  state = {
-    value: 0,
-  };
-
-  handleChange = (event, value) => {
-    this.setState({ value });
-  };
-
-  handleChangeIndex = index => {
-    this.setState({ value: index });
+  // The Link component from react-router doesn't play well with the Tab component
+  // from Material UI, so we'll do history management programatically
+  changeTab = (event, value) => {
+    history.push(`/${value}`);
   };
 
   render() {
     const { classes, theme } = this.props;
-    const { value } = this.state;
 
     return (
+      <Router history={history}>
       <div className={classes.root}>
         
         <Typography variant="title" align="center" gutterBottom>Recipe Database 2.0</Typography>
 
         <AppBar position="static" color="default">
           <Tabs
-            value={value}
-            onChange={this.handleChange}
+            value="search"
+            onChange={this.changeTab}
             indicatorColor="primary"
             textColor="primary"
-            fullWidth
+            fullWidth={true}
           >
-            <Tab icon={<SearchIcon />} label="Search" />
-            <Tab icon={<CreateIcon />} label="Add" />
-            <Tab icon={<CloudDownloadIcon />} label="Import" />
+
+            <Tab icon={<SearchIcon />} label="Search" value="search" />
+            <Tab icon={<CreateIcon />} label="Add" value="add" />
+            <Tab icon={<CloudDownloadIcon />} label="Import" value="import" />
+            <Tab className={classes.viewTab} label="View" value="recipes" />
           </Tabs>
         </AppBar>
 
-        {value === 0 && <TabContainer dir={theme.direction}><SearchRecipes /></TabContainer>}
-        {value === 1 && <TabContainer dir={theme.direction}><AddRecipe /></TabContainer>}
-        {value === 2 && <TabContainer dir={theme.direction}><ImportRecipe /></TabContainer>}
+        <Route path='/search' render={() => <TabContainer dir={theme.direction}><SearchRecipes /></TabContainer>} />
+        <Route path='/add' render={() => <TabContainer dir={theme.direction}><AddRecipe /></TabContainer>} />
+        <Route path='/import' render={() => <TabContainer dir={theme.direction}><ImportRecipe /></TabContainer>} />
+        <Route path='/recipes/:id' render={() => <TabContainer dir={theme.direction}><ViewRecipe /></TabContainer>} />
+
       </div>
+      </Router>
     );
   }
 }
-
 App.propTypes = {
   classes: PropTypes.object.isRequired,
   theme: PropTypes.object.isRequired,

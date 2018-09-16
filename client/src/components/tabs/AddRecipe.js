@@ -5,7 +5,7 @@ import Recipe from '../Recipe';
 class AddRecipe extends Component {
     render() {
         return (
-            <div>
+            <React.Fragment>
                 <Typography variant="body1" gutterBottom>
                     Fill out this form to manually add a recipe the database.
                 </Typography>
@@ -14,7 +14,7 @@ class AddRecipe extends Component {
                 </Typography>
 
                 <Recipe edit='true' />
-            </div>
+            </React.Fragment>
         );
     }
 }
