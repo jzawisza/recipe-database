@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
-import Typography from '@material-ui/core/Typography';
+import Recipe from '../Recipe';
 
 class ViewRecipe extends Component {
     render() {
+        const { recipeId } = this.props;
+        
         return (
-            <div>
-                <Typography variant="body1" gutterBottom>
-                    View Recipe test
-                </Typography>
-            </div>
+            <React.Fragment>
+                <Recipe id={recipeId}/>
+            </React.Fragment>
         );
     }
 }

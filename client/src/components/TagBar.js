@@ -42,18 +42,38 @@ const styles = theme => ({
     }
   });
 
+const CURRENT_TAGS_TEST = [
+  { id: 2, tagName: 'Vegetarian' },
+  { id: 3, tagName: 'Gluten Free' }
+];
+
+const ALL_OTHER_TAGS_TEST = [
+  { id: 1, tagName: 'Passover' },
+  { id: 4, tagName: 'Indian' },
+  { id: 5, tagName: 'Fish' }
+];
+
+const ALL_OTHER_TAGS_ALL = [
+  { id: 1, tagName: 'Passover' },
+  { id: 2, tagName: 'Vegetarian' },
+  { id: 3, tagName: 'Gluten Free' },
+  { id: 4, tagName: 'Indian' },
+  { id: 5, tagName: 'Fish' }
+];
+
 class TagBar extends Component {
-    // TODO: replace this test data with real data
+    constructor(props) {
+      super(props);
+
+      // If we're viewing an recipe, simulate having tag data
+      // TODO: replace this with database fetch
+      let hasData = props.recipeId;
+      this.state.currentTags = hasData ? CURRENT_TAGS_TEST : [];
+      this.state.allOtherTags = hasData ? ALL_OTHER_TAGS_TEST : ALL_OTHER_TAGS_ALL;
+    }
+
     state = {
-        currentTags: [
-            { id: 2, tagName: 'Vegetarian' },
-            { id: 3, tagName: 'Gluten Free' }
-        ],
-        allOtherTags: [
-            { id: 1, tagName: 'Passover' },
-            { id: 4, tagName: 'Indian' },
-            { id: 5, tagName: 'Fish' }
-        ],
+        currentTags: [],
         tagValue: '',
         suggestions: [],
     };      
@@ -143,26 +163,26 @@ class TagBar extends Component {
     };
 
     render() {
-        const { classes } = this.props;
-        // TODO: pass IDs to this component to load existing recipes
-        // let recipeId = this.props.recipeId;
-
-        const tagList = this.state.currentTags.map(tagData =>
-            <Chip
-                key={tagData.id}                   
-                label={tagData.tagName}
-                onDelete={this.handleDeleteTag(tagData)}
-                className={classes.chip}
-            />
-        );
+        const { classes, editMode } = this.props;
 
         return (
             <React.Fragment>
               <Grid item xs={12}>
-                {tagList}
+                {this.state.currentTags.map(tagData => {
+                  let onDeleteFunc = editMode ? this.handleDeleteTag(tagData) : null;
+                  return (
+                    <Chip
+                      key={tagData.id}
+                      label={tagData.tagName}
+                      onDelete={onDeleteFunc}
+                      className = {classes.chip}
+                    />
+                  );
+                })}
               </Grid>
               <Grid item xs={12}>
-                <Autosuggest
+                {editMode &&
+                  <Autosuggest
                     theme={{
                     container: classes.container,
                     suggestionsContainerOpen: classes.suggestionsContainerOpen,
@@ -183,7 +203,8 @@ class TagBar extends Component {
                     value: this.state.tagValue,
                     onChange: this.handleAutoSuggestChange,
                     }}
-                />
+                  />
+                }
               </Grid>
             </React.Fragment>
         );

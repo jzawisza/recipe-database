@@ -8,6 +8,16 @@ import IconButton from '@material-ui/core/IconButton';
 import { renderInput, renderSuggestion, renderSuggestionsContainer, getSuggestionValue } from './utils/AutoCompleteUtils';
 import '../App.css';
 
+const LINKED_RECIPES_TEST = [
+    {id: 2, title: 'Chicken Curry'},
+    {id: 3, title: 'Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita'}
+];
+
+const OTHER_RECIPES_TEST = [
+    {id: 4, title: 'Fettucine Alfredo'},
+    {id: 5, title: 'Fish and Chips'},
+    {id: 6, title: 'Miso-Glazed Salmon'}
+];
 
 const styles = theme => ({
     root: {
@@ -48,37 +58,37 @@ class RecipeLinkItem extends Component {
          return (
             <div className="recipe-link">
                 <div className="recipe-link-item recipe-link-title">{this.props.value.title}</div>
-                <div className="recipe-link-item">
-                    <IconButton aria-label="Delete" onClick={this.onClickCloseIcon} className={this.props.className}>
-                        <CloseIcon />
-                    </IconButton>
-                </div>
+                {this.props.editMode &&
+                    <div className="recipe-link-item">
+                        <IconButton aria-label="Delete" onClick={this.onClickCloseIcon} className={this.props.className}>
+                            <CloseIcon />
+                        </IconButton>
+                    </div>
+                }
             </div>
         );
         }
 }
 
 class RecipeLinks extends Component {
-    constructor(props, state) {
+    constructor(props) {
         super(props);
 
-        // TODO: replace test data with real data
-        this.state = {
-            linkedRecipes: [
-                {id: 2, title: 'Chicken Curry'},
-                {id: 3, title: 'Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita'}
-            ],
-            otherRecipes: [
-                {id: 4, title: 'Fettucine Alfredo'},
-                {id: 5, title: 'Fish and Chips'},
-                {id: 6, title: 'Miso-Glazed Salmon'}
-            ],
-            recipeLinkValue: '',
-            suggestions: []
-        };
+        // If we're viewing an recipe, simulate having recipe link data
+        // TODO: replace this with database fetch
+        let hasData = props.recipeId;
+        this.state.linkedRecipes = hasData ? LINKED_RECIPES_TEST : [];
 
         this.deleteLinkItem = this.deleteLinkItem.bind(this);
     }
+
+    // TODO: replace test data with real data
+    state = {
+        otherRecipes: OTHER_RECIPES_TEST,
+        recipeLinkValue: '',
+        suggestions: []
+    };
+    
 
     deleteLinkItem(linkItem) {
         this.setState(state => {
@@ -141,10 +151,10 @@ class RecipeLinks extends Component {
       };
 
     render() {
-        const { classes } = this.props;
+        const { classes, editMode } = this.props;
 
         const linksList = this.state.linkedRecipes.map(linkData =>
-            <RecipeLinkItem key={linkData.id} value={linkData} onDelete={this.deleteLinkItem} className={classes.smallIcon} />
+            <RecipeLinkItem key={linkData.id} value={linkData} onDelete={this.deleteLinkItem} className={classes.smallIcon} editMode={editMode} />
         );
 
         return (
@@ -154,30 +164,32 @@ class RecipeLinks extends Component {
                     {linksList}
                 </div>
               </Grid>
-              <Grid item xs={12}>
-                <Autosuggest
-                    theme={{
-                    container: classes.container,
-                    suggestionsContainerOpen: classes.suggestionsContainerOpen,
-                    suggestionsList: classes.suggestionsList,
-                    suggestion: classes.suggestion,
-                    }}
-                    renderInputComponent={renderInput}
-                    suggestions={this.state.suggestions}
-                    onSuggestionsFetchRequested={this.handleSuggestionsFetchRequested}
-                    onSuggestionsClearRequested={this.handleSuggestionsClearRequested}
-                    renderSuggestionsContainer={renderSuggestionsContainer}
-                    getSuggestionValue={getSuggestionValue}
-                    renderSuggestion={renderSuggestion}
-                    onSuggestionSelected={this.handleSuggestionSelected}
-                    inputProps={{
-                    classes,
-                    placeholder: 'Enter recipe to link to',
-                    value: this.state.recipeLinkValue,
-                    onChange: this.handleAutoSuggestChange,
-                    }}
-                />
-              </Grid>
+              {editMode &&
+                <Grid item xs={12}>
+                    <Autosuggest
+                        theme={{
+                        container: classes.container,
+                        suggestionsContainerOpen: classes.suggestionsContainerOpen,
+                        suggestionsList: classes.suggestionsList,
+                        suggestion: classes.suggestion,
+                        }}
+                        renderInputComponent={renderInput}
+                        suggestions={this.state.suggestions}
+                        onSuggestionsFetchRequested={this.handleSuggestionsFetchRequested}
+                        onSuggestionsClearRequested={this.handleSuggestionsClearRequested}
+                        renderSuggestionsContainer={renderSuggestionsContainer}
+                        getSuggestionValue={getSuggestionValue}
+                        renderSuggestion={renderSuggestion}
+                        onSuggestionSelected={this.handleSuggestionSelected}
+                        inputProps={{
+                        classes,
+                        placeholder: 'Enter recipe to link to',
+                        value: this.state.recipeLinkValue,
+                        onChange: this.handleAutoSuggestChange,
+                        }}
+                    />
+                </Grid>
+              }
             </React.Fragment>
         );
     }

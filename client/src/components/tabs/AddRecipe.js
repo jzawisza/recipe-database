@@ -13,7 +13,7 @@ class AddRecipe extends Component {
                     You do not need to explicitly save: your results will be saved as you enter them.
                 </Typography>
 
-                <Recipe edit='true' />
+                <Recipe />
             </React.Fragment>
         );
     }

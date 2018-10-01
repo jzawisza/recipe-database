@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Router, Route } from 'react-router-dom';
+import { Router, Route, Redirect } from 'react-router-dom';
 import history from './components/utils/History';
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -33,13 +33,10 @@ class App extends Component {
     history.push(`/${value}`);
   };
 
-  componentDidMount() {
-    // Automatically redirect to the search route when we load the app
-    history.push('/search');
-  }
-
   render() {
     const { classes, theme } = this.props;
+
+    let initialLoad = window.location.pathname === '/';
 
     return (
       <Router history={history}>
@@ -66,7 +63,9 @@ class App extends Component {
         <Route path='/search' render={() => <TabContainer dir={theme.direction}><SearchRecipes /></TabContainer>} />
         <Route path='/add' render={() => <TabContainer dir={theme.direction}><AddRecipe /></TabContainer>} />
         <Route path='/import' render={() => <TabContainer dir={theme.direction}><ImportRecipe /></TabContainer>} />
-        <Route path='/recipes/:id' render={() => <TabContainer dir={theme.direction}><ViewRecipe /></TabContainer>} />
+        <Route path='/recipes/:recipeId' render={({ match }) => <TabContainer dir={theme.direction}><ViewRecipe recipeId={match.params.recipeId}/></TabContainer>} />
+        {/* Redirect if we're navigating to the main screen of the app, i.e. no other route is specified */}
+        {initialLoad && <Redirect from='/' to='/search' />}
 
       </div>
       </Router>
