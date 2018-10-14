@@ -106,7 +106,6 @@ class SearchRecipes extends Component {
                             <MenuItem value={'source'}>source</MenuItem>
                             <MenuItem value={'tags'}>tags</MenuItem>
                             <MenuItem value={'ingredients'}>ingredients</MenuItem>
-                            <MenuItem value={'steps'}>steps</MenuItem>
                             <MenuItem value={'serves'}>number of servings</MenuItem>
                         </Select>
                     </FormControl>
