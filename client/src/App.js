@@ -26,11 +26,17 @@ const styles = theme => ({
 });
 
 class App extends Component {
+  state = {
+    tabValue: 'search'
+  };
   // The Link component from react-router doesn't play well with the Tab component
   // from Material UI, so we'll do history management programatically
   // See: https://github.com/ReactTraining/react-router/blob/master/FAQ.md#how-do-i-access-the-history-object-outside-of-components
   changeTab = (event, value) => {
     history.push(`/${value}`);
+    this.setState({
+      tabValue: value
+    });
   };
 
   render() {
@@ -46,7 +52,7 @@ class App extends Component {
 
         <AppBar position="static" color="default">
           <Tabs
-            value="search"
+            value={this.state.tabValue}
             onChange={this.changeTab}
             indicatorColor="primary"
             textColor="primary"
