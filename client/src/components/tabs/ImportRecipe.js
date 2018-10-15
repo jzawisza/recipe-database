@@ -21,6 +21,8 @@ import green from '@material-ui/core/colors/green';
 import {debounce} from 'throttle-debounce';
 import isURL from 'validator/lib/isURL';
 import TagBar from '../TagBar';
+import { Helmet } from 'react-helmet';
+import { MAIN_TITLE } from '../../App';
 
 const URL_ERROR_TEXT = 'The URL entered is not valid.';
 const URL_INPUT_ID = "urlInput";
@@ -186,6 +188,9 @@ class ImportRecipe extends Component {
 
         return (
             <div>
+                <Helmet>
+                    <title>{`Import Recipe - ${MAIN_TITLE}`}</title>
+                </Helmet>
                 <Typography variant="body1" gutterBottom>
                         Use this form to import a recipe from another web site.
                 </Typography>

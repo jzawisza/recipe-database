@@ -12,6 +12,8 @@ import Switch from '@material-ui/core/Switch';
 import SearchBar from 'material-ui-search-bar'
 import {debounce} from 'throttle-debounce';
 import RecipeTable from '../RecipeTable';
+import { Helmet } from 'react-helmet';
+import { MAIN_TITLE } from '../../App';
 
 const SEARCH_ANY = 'any';
 
@@ -68,6 +70,9 @@ class SearchRecipes extends Component {
 
         return (
             <div>
+                <Helmet>
+                    <title>{`Search Recipes - ${MAIN_TITLE}`}</title>
+                </Helmet>
                 <Typography variant="body1" gutterBottom>
                     Search for recipes using the search bar below.
                 </Typography>

@@ -17,6 +17,8 @@ import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import { debounce } from 'throttle-debounce';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
+import { Helmet } from 'react-helmet';
+import { MAIN_TITLE } from '../App';
 
 const REQUIRED_FIELD_LABEL = "This field is required."
 
@@ -131,10 +133,14 @@ class Recipe extends Component {
         let isNewRecipe = !id;
         // Enable editing if this is a new recipe
         let disableEditing = false;
+        // Only update the page title if this is an existing recipe:
+        // otherwise, the update has already been made outside this component
+        let titleStr = null;
         // If this is an existing recipe, editing is disabled by default,
         // and enabled only if the user has explicitly requested edit mode
         if (!isNewRecipe) {
             disableEditing = !this.state.editMode;
+            titleStr = `${this.state.title} - ${MAIN_TITLE}`;
         }
 
         let showTitleError = !this.state.title && !disableEditing;
@@ -146,6 +152,11 @@ class Recipe extends Component {
 
         return (
             <div className={classes.root}>
+                {titleStr &&
+                    <Helmet>
+                        <title>{titleStr}</title>
+                    </Helmet>
+                }
                 <form className={classes.container}>
                     <Grid container spacing={0} wrap="wrap">
                         {!isNewRecipe &&

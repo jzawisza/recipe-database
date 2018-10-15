@@ -16,6 +16,8 @@ import ImportRecipe from './components/tabs/ImportRecipe';
 import SearchRecipes from './components/tabs/SearchRecipes';
 import ViewRecipe from './components/tabs/ViewRecipe';
 
+export const MAIN_TITLE = 'Recipe Database 2.0';
+
 const styles = theme => ({
   root: {
     backgroundColor: theme.palette.background.paper
