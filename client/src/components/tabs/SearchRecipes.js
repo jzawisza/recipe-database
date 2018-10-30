@@ -11,7 +11,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Switch from '@material-ui/core/Switch';
 import SearchBar from 'material-ui-search-bar'
 import {debounce} from 'throttle-debounce';
-import RecipeTable from '../RecipeTable';
+import RecipeTable from '../tables/RecipeTable';
 import { Helmet } from 'react-helmet';
 import { MAIN_TITLE } from '../../App';
 

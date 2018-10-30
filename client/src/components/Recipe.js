@@ -321,7 +321,8 @@ class Recipe extends Component {
 }
 
 Recipe.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    id: PropTypes.string
 };
 
 export default withStyles(styles, { withTheme: true })(Recipe); 

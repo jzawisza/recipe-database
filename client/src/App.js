@@ -11,8 +11,11 @@ import Typography from '@material-ui/core/Typography';
 import SearchIcon from '@material-ui/icons/Search';
 import CreateIcon from '@material-ui/icons/Create';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import RestaurantMenuIcon from '@material-ui/icons/RestaurantMenu';
+import FavoriteIcon from '@material-ui/icons/Favorite';
 import AddRecipe from './components/tabs/AddRecipe';
 import ImportRecipe from './components/tabs/ImportRecipe';
+import ReviewRecipes from './components/tabs/ReviewRecipes';
 import SearchRecipes from './components/tabs/SearchRecipes';
 import ViewRecipe from './components/tabs/ViewRecipe';
 
@@ -64,6 +67,8 @@ class App extends Component {
             <Tab icon={<SearchIcon />} label="Search" value="search" />
             <Tab icon={<CreateIcon />} label="Add" value="add" />
             <Tab icon={<CloudDownloadIcon />} label="Import" value="import" />
+            <Tab icon={<RestaurantMenuIcon />} label="Plan" value="plan" />
+            <Tab icon={<FavoriteIcon />} label="Favorites" value="favorites" />
             <Tab className={classes.viewTab} label="View" value="recipes" />
           </Tabs>
         </AppBar>
@@ -71,6 +76,8 @@ class App extends Component {
         <Route path='/search' render={() => <TabContainer dir={theme.direction}><SearchRecipes /></TabContainer>} />
         <Route path='/add' render={() => <TabContainer dir={theme.direction}><AddRecipe /></TabContainer>} />
         <Route path='/import' render={() => <TabContainer dir={theme.direction}><ImportRecipe /></TabContainer>} />
+        <Route path='/plan' render={() => <TabContainer dir={theme.direction}><ReviewRecipes isMealPlanner={true} /></TabContainer>} />
+        <Route path='/favorites' render={() => <TabContainer dir={theme.direction}><ReviewRecipes isMealPlanner={false} /></TabContainer>} />
         <Route path='/recipes/:recipeId' render={({ match }) => <TabContainer dir={theme.direction}><ViewRecipe recipeId={match.params.recipeId}/></TabContainer>} />
         {/* Redirect if we're navigating to the main screen of the app, i.e. no other route is specified */}
         {initialLoad && <Redirect from='/' to='/search' />}
