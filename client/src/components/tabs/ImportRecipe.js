@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import { Grid } from '@material-ui/core';
-import WarningIcon from '@material-ui/icons/Warning';
-import Paper from '@material-ui/core/Paper';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
@@ -39,13 +37,6 @@ const styles = theme => ({
         alignItems: 'baseline',
         justifyContent: 'space-evenly',
         maxWidth: 1000
-      },
-    warningDialog: {
-        display: 'flex',
-        flexWrap: 'nowrap',
-        alignItems: 'baseline',
-        justifyContent: 'space-evenly',
-        width: 450
       },
       tagContainer: {
         paddingTop: 20
@@ -192,14 +183,12 @@ class ImportRecipe extends Component {
                     <title>{`Import Recipe - ${MAIN_TITLE}`}</title>
                 </Helmet>
                 <Typography variant="body1" gutterBottom>
-                        Use this form to import a recipe from another web site.
+                        Use this form to import a recipe from one of the following web sites:
+                        <ul>
+                            <li>Cooking Light</li>
+                            <li>Bon Appetit</li>
+                        </ul>
                 </Typography>
-                <Paper className={classes.warningDialog} elevation={1}>
-                    <WarningIcon />
-                    <Typography variant="body1" gutterBottom>
-                        NOTE: only the Cooking Light web site is currently supported.
-                    </Typography>
-                </Paper>
 
                 <form className={classes.container}>
                     <Grid container spacing={0} wrap="wrap">
