@@ -8,12 +8,15 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Snackbar from '@material-ui/core/Snackbar';
+import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import EditIcon from '@material-ui/icons/Edit';
 import DoneIcon from '@material-ui/icons/Done';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
+import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
+import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
 import { debounce } from 'throttle-debounce';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
@@ -82,6 +85,7 @@ class Recipe extends Component {
     state = {
         saveSnackbarVisible: false,
         isFavorite: false,
+        isMealPlanner: false,
         editMode: false
     };
 
@@ -107,21 +111,12 @@ class Recipe extends Component {
         this.setState({ saveSnackbarVisible: false });
       };
 
-      handleToggleFavorite = event => {
-        this.setState(state => {
-            let prevIsFavorite = state.isFavorite;
-
-            return { isFavorite: !prevIsFavorite };
-        });
-      };
-
-      handleToggleEditMode = event => {
-        this.setState(state => {
-            let prevEditMode = state.editMode;
-
-            return { editMode: !prevEditMode };
-        });
-      }; 
+    toggle = name => event => {
+        let prevValue = this.state[name];
+        this.setState({
+          [name]: !prevValue
+        })
+    }; 
 
     render() {
         const { classes, id } = this.props;
@@ -161,24 +156,39 @@ class Recipe extends Component {
                     <Grid container spacing={0} wrap="wrap">
                         {!isNewRecipe &&
                             <Grid item xs={12}>
-                                <IconButton
-                                    key='editMode'
-                                    color='primary'
-                                    aria-label='Toggle edit mode'
-                                    className={classes.topIcons}
-                                    onClick={this.handleToggleEditMode}
-                                >
-                                    {this.state.editMode ? <DoneIcon /> : <EditIcon />}
-                                </IconButton>
-                                <IconButton
-                                    key="setFavorite"
-                                    color="primary"
-                                    aria-label="Mark as favorite"
-                                    className={classes.topIcons}
-                                    onClick={this.handleToggleFavorite}
-                                >
-                                    {this.state.isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                                </IconButton>
+                                <Tooltip title={this.state.editMode ? 'Finish editing recipe' : 'Edit recipe'}>
+                                    <IconButton
+                                        key='editMode'
+                                        color='primary'
+                                        aria-label='Toggle edit mode'
+                                        className={classes.topIcons}
+                                        onClick={this.toggle('editMode').bind(this)}
+                                    >
+                                        {this.state.editMode ? <DoneIcon /> : <EditIcon />}
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title={this.state.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}>
+                                    <IconButton
+                                        key='isFavorite'
+                                        color='primary'
+                                        aria-label='Mark as favorite'
+                                        className={classes.topIcons}
+                                        onClick={this.toggle('isFavorite').bind(this)}
+                                    >
+                                        {this.state.isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title={this.state.isMealPlanner ? 'Remove from Meal Planner' : 'Add to Meal Planner'}>
+                                    <IconButton
+                                        key='isMealPlanner'
+                                        color='primary'
+                                        aria-label='Add to Meal Planner'
+                                        className={classes.topIcons}
+                                        onClick={this.toggle('isMealPlanner').bind(this)}
+                                    >
+                                        {this.state.isMealPlanner ? <RemoveShoppingCartIcon /> : <AddShoppingCartIcon />}
+                                    </IconButton>
+                                </Tooltip>
                             </Grid>
                         }
                         <Grid item xs={12}>
