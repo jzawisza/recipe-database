@@ -46,6 +46,14 @@ class SortablePaginatedTable extends Component {
   
       this.setState({ order, orderBy });
     };
+
+    handleSelectAllClick = event => {
+      if (event.target.checked) {
+        this.setState(state => ({ selected: state.data.map(n => n.id) }));
+        return;
+      }
+      this.setState({ selected: [] });
+    };
   
     handleClick = (event, id) => {
       const { selected } = this.state;
@@ -100,6 +108,7 @@ class SortablePaginatedTable extends Component {
                 orderBy={orderBy}
                 onRequestSort={this.handleRequestSort}
                 rowCount={data.length}
+                onSelectAllClick={this.handleSelectAllClick}
               />
               <TableBody>
                 {data
