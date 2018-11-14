@@ -20,15 +20,15 @@ import {debounce} from 'throttle-debounce';
 import isURL from 'validator/lib/isURL';
 import TagBar from '../TagBar';
 import { Helmet } from 'react-helmet';
+import { connect } from 'react-redux';
 import { MAIN_TITLE } from '../../App';
+import { importRecipe } from '../../actions/actions';
 
 const URL_ERROR_TEXT = 'The URL entered is not valid.';
 const URL_INPUT_ID = "urlInput";
 const IMPORT_BUTTON_ID = "import-button";
 const IMPORT_BUTTON_DEFAULT_TEXT = "Import";
 const IMPORT_BUTTON_IMPORTING_TEXT = "Importing...";
-const IMPORT_STATUS_OK = "Import succeeded!";
-const IMPORT_STATUS_ERROR = "Import failed!";
 
 const styles = theme => ({
     container: {
@@ -69,21 +69,26 @@ const styles = theme => ({
     />
   ))
 
-class ImportRecipe extends Component {
-    state = {
-        hasURLValue: false,
-        isValidURL: false,
-        importErrorText: null,
-        importing: false,
-        importButtonText: IMPORT_BUTTON_DEFAULT_TEXT,
-        importSnackbarVisible: false,
-        importSucceeded: true,
-        importNotes: false
-    }
+  const defaultState = {
+    hasURLValue: false,
+    isValidURL: false,
+    importErrorText: null,
+    importing: false,
+    importButtonText: IMPORT_BUTTON_DEFAULT_TEXT,
+    importNotes: false,
+    url: undefined
+  };
 
+class ImportRecipe extends Component {
     constructor(props) {
         super(props);
+        this.state = this.getDefaultState();
         this.handleChangeEvent = debounce(500, this.handleChangeEvent);
+    }
+
+    // Return a default state object that includes all the pre-defined values
+    getDefaultState(showSnackbar = false) {
+        return Object.assign(defaultState, { importSnackbarVisible: showSnackbar });
     }
 
     handleCloseImportSnackbar = (event, reason) => {
@@ -137,7 +142,7 @@ class ImportRecipe extends Component {
             return;
         }
 
-        document.getElementById(IMPORT_BUTTON_ID).value = "Importing...";
+        // Set state appropriately prior to doing import
         this.setState(prevState => {
             return {
                 importErrorText: null,
@@ -146,26 +151,17 @@ class ImportRecipe extends Component {
             }
         });
 
-        // TODO: call backend here to import recipe
+        // TODO: support tags
+        this.props.importRecipe(this.state.url, {}, this.state.importNotes);
 
-        // Clear out data that was entered in UI if we succeed
+        // Clear out data that was entered in UI
         // TODO: clear out tagbar once that capability is added
         document.getElementById(URL_INPUT_ID).value = '';
-        this.setState(prevState => {
-            return {
-                importing: false,
-                importButtonText: IMPORT_BUTTON_DEFAULT_TEXT,
-                importSnackbarVisible: true,
-                // importStatusMsg: IMPORT_STATUS_ERROR,
-                // importSucceeded: false
-                importStatusMsg: IMPORT_STATUS_OK,
-                importSucceeded: true
-            }
-        });
+        this.setState(this.getDefaultState(true));
     }
 
     render() {
-        const { classes } = this.props;
+        const { classes, importSucceeded, importStatusMsg } = this.props;
 
         let urlErrorText = '';
         let hasURLError = false;
@@ -175,7 +171,7 @@ class ImportRecipe extends Component {
         }
         let importErrorText = this.state.importErrorText;
         let hasImportError = (importErrorText !== null);
-        let snackbarClass = this.state.importSucceeded ? classes.importOk : classes.importError;
+        let snackbarClass = importSucceeded ? classes.importOk : classes.importError;
 
         return (
             <div>
@@ -253,13 +249,13 @@ class ImportRecipe extends Component {
                         horizontal: 'left',
                     }}
                     open={this.state.importSnackbarVisible}
-                    autoHideDuration={2000}
+                    autoHideDuration={3000}
                     onClose={this.handleCloseImportSnackbar}
                     ContentProps={{
                         'aria-describedby': 'message-id',
                         className: snackbarClass
                     }}
-                    message={<span id="message-id">{this.state.importStatusMsg}</span>}
+                    message={<span id="message-id">{importStatusMsg}</span>}
                     action={[
                         <IconButton
                           key="close"
@@ -277,7 +273,22 @@ class ImportRecipe extends Component {
 }
 
 ImportRecipe.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    importRecipe: PropTypes.func.isRequired,
+    importSucceeded: PropTypes.bool.isRequired,
+    importStatusMsg: PropTypes.string.isRequired
 };
 
-export default withStyles(styles, { withTheme: true })(ImportRecipe); 
+ImportRecipe.defaultProps = {
+    importSucceeded: true,
+    importStatusMsg: ''
+  };
+
+const mapStateToProps = state => {
+    return ({
+        importSucceeded: state.getImportStatus.importSucceeded,
+        importStatusMsg: state.getImportStatus.importStatusMsg
+    });
+};
+
+export default connect(mapStateToProps, { importRecipe })(withStyles(styles, { withTheme: true })(ImportRecipe));
