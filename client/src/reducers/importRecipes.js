@@ -15,10 +15,6 @@ export function getImportStatus(state = initialState, action) {
     switch(action.type) {
         case GET_IMPORT_STATUS:
             if (isError(action)) {
-                // return Object.assign({}, state, {
-                //     importSucceeded: false,
-                //     importStatusMsg: `${IMPORT_STATUS_ERROR}: ${action.payload.errMsg}`
-                // });
                 return {
                     ...state,
                     importSucceeded: false,

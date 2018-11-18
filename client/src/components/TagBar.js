@@ -5,6 +5,10 @@ import { withStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import { Grid } from '@material-ui/core';
 import { renderInput, renderSuggestion, renderSuggestionsContainer, getSuggestionValue } from './utils/AutoCompleteUtils';
+import { doGet, doPost } from './utils/AjaxUtils';
+import { connect } from 'react-redux';
+import { addTag } from '../actions/actions';
+import { store } from '../configureStore';
 
 // NOTE: much of the code here comes from Material UI's sample implementation
 // of react-autosuggest at https://material-ui.com/demos/autocomplete/
@@ -42,38 +46,22 @@ const styles = theme => ({
     }
   });
 
-const CURRENT_TAGS_TEST = [
-  { id: 2, tagName: 'Vegetarian' },
-  { id: 3, tagName: 'Gluten Free' }
-];
-
-const ALL_OTHER_TAGS_TEST = [
-  { id: 1, tagName: 'Passover' },
-  { id: 4, tagName: 'Indian' },
-  { id: 5, tagName: 'Fish' }
-];
-
-const ALL_OTHER_TAGS_ALL = [
-  { id: 1, tagName: 'Passover' },
-  { id: 2, tagName: 'Vegetarian' },
-  { id: 3, tagName: 'Gluten Free' },
-  { id: 4, tagName: 'Indian' },
-  { id: 5, tagName: 'Fish' }
-];
-
 class TagBar extends Component {
     constructor(props) {
       super(props);
 
-      // If we're viewing an recipe, simulate having tag data
-      // TODO: replace this with database fetch
+      store.subscribe(() => {
+        this.setState(state => {
+          return { currentTags: store.getState().addTag.tags };
+        })
+      });
+
+      // TODO: fetch tag information from the database if we have a recipe ID
       let hasData = props.recipeId;
-      this.state.currentTags = hasData ? CURRENT_TAGS_TEST : [];
-      this.state.allOtherTags = hasData ? ALL_OTHER_TAGS_TEST : ALL_OTHER_TAGS_ALL;
+      this.state.currentTags = [];
     }
 
     state = {
-        currentTags: [],
         tagValue: '',
         suggestions: [],
     };      
@@ -81,46 +69,48 @@ class TagBar extends Component {
     handleDeleteTag = data => () => {
         this.setState(state => {
             let currentTags = [...state.currentTags];
-            let allOtherTags = [...state.allOtherTags];
             let tagToDeleteIndex = currentTags.indexOf(data);
             currentTags.splice(tagToDeleteIndex, 1);
-            // A tag that's deleted is available to be added again
-            allOtherTags.push(data);
-            return { currentTags, allOtherTags };
+            return { currentTags };
           });
     };
 
     handleSuggestionsFetchRequested = ({value}) => {
         const inputValue = value.trim();
-        const inputLength = inputValue.length;
-        let count = 0;
-            
-        let newSuggestions = (inputLength === 0)
-            ? []
-            : this.state.allOtherTags.filter(suggestion => {
-                const keep =
-                count < 5 && suggestion.tagName.slice(0, inputLength) === inputValue;
-        
-                if (keep) {
-                count += 1;
-                }
-        
-                return keep;
-            });
 
-        // Unless we have an exact match, give the user the option
-        // to create a new tag
-        let exactMatch = this.state.allOtherTags.some(tag => {
-          return tag.tagName.trim() === inputValue;
+        // Create query parameters to remove current tags from server results,
+        // so that we can't add duplicate tags
+        let notInParams = '';
+        this.state.currentTags.forEach(existingTag => {
+          notInParams += `&id[$notIn][]=${existingTag.id}`;
         });
-        if (exactMatch === false) {
-          newSuggestions.push(
-            { id: NEW_TAG_ID, tagName: `${inputValue}${NEW_TAG_STRING}` }
-          );
-        }
+        
+        doGet(`tags?name[$like]=${value}%${notInParams}`).then(responseJson => {
+          let serverSuggestions = responseJson.data;
 
-        this.setState({
-            suggestions: newSuggestions
+          // Unless we have an exact match, give the user the option
+          // to create a new tag
+          let currentExactMatch = false;
+          let serverExactMatch = serverSuggestions.some(tag => {
+            return tag.name.trim() === inputValue;
+          });
+          // The results from the server omit existing tags,
+          // so if we don't find anything there, we have to check
+          // the current tags as well
+          if (serverExactMatch === false) {
+            currentExactMatch = this.state.currentTags.some(tag => {
+              return tag.name.trim() === inputValue;
+            });
+          }
+          if (!(serverExactMatch || currentExactMatch)) {
+            serverSuggestions.push(
+              { id: NEW_TAG_ID, name: `${inputValue}${NEW_TAG_STRING}` }
+            );
+          }
+
+          this.setState({
+            suggestions: serverSuggestions
+          });
         });
     };
     
@@ -131,26 +121,27 @@ class TagBar extends Component {
     };
 
     handleSuggestionSelected = (event, { suggestion }) => {
-      // If this is a new tag, process it appropriately
-      let newSuggestion = suggestion;
+      // If this is a new tag, add it to the database and then add to local state
       if (suggestion.id === NEW_TAG_ID) {
-        // TODO: write to DB, get new ID back, and update here
         // Remove "( New tag)" suffix from new tag
-        let helperTextIndex = suggestion.tagName.indexOf(NEW_TAG_STRING);
-        newSuggestion.tagName = suggestion.tagName.slice(0, helperTextIndex);
+        let helperTextIndex = suggestion.name.indexOf(NEW_TAG_STRING);
+        let newTagName = suggestion.name.slice(0, helperTextIndex);
+        doPost('tags', { 'name': newTagName }).then(responseJson => {
+          this.updateStateWithSelectedSuggestion(responseJson);
+        })
       }
+      else {
+        this.updateStateWithSelectedSuggestion(suggestion);
+      }
+    };
+
+    updateStateWithSelectedSuggestion = suggestion => {
+      // Add to Redux store
+      // Because we subscribe to the store, this updates the local state as well
+      this.props.addTag(suggestion);
+
       this.setState(state => {
-        let currentTags = [...state.currentTags];
-        let allOtherTags = [...state.allOtherTags];
-        // Add item to list of selected tags
-        currentTags.push(newSuggestion);
-        // Remove item from list of non-selected tags unless it's a new tag
-        // (and therefore wasn't part of that list in the first place)
-        let tagToDeleteIndex = allOtherTags.indexOf(newSuggestion);
-        if (tagToDeleteIndex !== -1) {
-          allOtherTags.splice(tagToDeleteIndex, 1);
-        }
-        let newState = { currentTags, allOtherTags }
+        let newState = state;
         newState['tagValue'] = '';
         return newState;
       });
@@ -173,7 +164,7 @@ class TagBar extends Component {
                   return (
                     <Chip
                       key={tagData.id}
-                      label={tagData.tagName}
+                      label={tagData.name}
                       onDelete={onDeleteFunc}
                       className = {classes.chip}
                     />
@@ -212,7 +203,8 @@ class TagBar extends Component {
 }
 
 TagBar.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    addTag: PropTypes.func.isRequired
 };
 
-export default withStyles(styles)(TagBar);
+export default connect(null, { addTag })(withStyles(styles)(TagBar));

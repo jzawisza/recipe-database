@@ -1,7 +1,9 @@
 import fetch from 'cross-fetch';
 import {
     IMPORT_RECIPE,
-    GET_IMPORT_STATUS
+    GET_IMPORT_STATUS,
+    ADD_TAG,
+    CLEAR_TAGS
 } from './actionTypes';
 
 const SERVER_URL = 'http://localhost:3030';
@@ -17,7 +19,8 @@ function createErrorObject(type, status, errMsg, otherProps = {}) {
 export function importRecipe(recipeUrl, tags = {}, importNotes = false) {
     return dispatch => {
         dispatch(beginImport())
-        return fetch(`${SERVER_URL}/recipe-import?url=${recipeUrl}&tags=${tags}&importNotes=${importNotes}`, { method: 'POST' })
+        let encodedTags = window.btoa(JSON.stringify(tags));
+        return fetch(`${SERVER_URL}/recipe-import?url=${recipeUrl}&tags=${encodedTags}&importNotes=${importNotes}`, { method: 'POST' })
             .then(
                 response => response.json(),
                 error => console.error(error)
@@ -41,5 +44,21 @@ function getImportStatus(responseJson) {
     }
     else {
         return { type: GET_IMPORT_STATUS, payload: responseJson };
+    }
+}
+
+// Add a tag to the store
+export function addTag(tag) {
+    return {
+        type: ADD_TAG,
+        tagId: tag.id,
+        tagName: tag.name
+    }
+}
+
+// Clear all tags from the store
+export function clearTags() {
+    return {
+        type: CLEAR_TAGS
     }
 }

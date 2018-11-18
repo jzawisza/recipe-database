@@ -1,5 +1,6 @@
 const rp = require('request-promise');
 const errors = require('@feathersjs/errors');
+const atob = require('atob');
 const CookingLightImporter = require('./importers/cooking-light-importer');
 const BonAppetitImporter = require('./importers/bon-appetit-importer');
 
@@ -28,10 +29,14 @@ class Service {
         // Query parameter values come in as strings, not booleans
         let shouldImportNotes = (importNotes === 'true');
 
-        // TODO: handle tags
-
         let importer = getImporterForUrl(url);
         let recipeData = importer.import(url, htmlString, shouldImportNotes);
+
+        if(tags) {
+          let tagArray = JSON.parse(atob(tags));
+          console.log(tagArray);
+          recipeData.data = { tags: tagArray };
+        }
 
         // Write to database
         Service.recipeService.create(recipeData)

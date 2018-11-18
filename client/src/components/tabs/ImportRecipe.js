@@ -22,7 +22,8 @@ import TagBar from '../TagBar';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { MAIN_TITLE } from '../../App';
-import { importRecipe } from '../../actions/actions';
+import { importRecipe, clearTags } from '../../actions/actions';
+import { store } from '../../configureStore';
 
 const URL_ERROR_TEXT = 'The URL entered is not valid.';
 const URL_INPUT_ID = "urlInput";
@@ -151,12 +152,12 @@ class ImportRecipe extends Component {
             }
         });
 
-        // TODO: support tags
-        this.props.importRecipe(this.state.url, {}, this.state.importNotes);
+        this.props.importRecipe(this.state.url, store.getState().addTag.tags, this.state.importNotes);
 
         // Clear out data that was entered in UI
         // TODO: clear out tagbar once that capability is added
         document.getElementById(URL_INPUT_ID).value = '';
+        this.props.clearTags();
         this.setState(this.getDefaultState(true));
     }
 
@@ -180,11 +181,12 @@ class ImportRecipe extends Component {
                 </Helmet>
                 <Typography variant="body1" gutterBottom>
                         Use this form to import a recipe from one of the following web sites:
-                        <ul>
-                            <li>Cooking Light</li>
-                            <li>Bon Appetit</li>
-                        </ul>
                 </Typography>
+                <ul>
+                    <li>Cooking Light</li>
+                    <li>Bon Appetit</li>
+                </ul>
+
 
                 <form className={classes.container}>
                     <Grid container spacing={0} wrap="wrap">
@@ -204,7 +206,7 @@ class ImportRecipe extends Component {
                         <Grid item xs={12} className={classes.tagContainer}>
                             <Divider className={classes.otherDivider} />
                             <InputLabel>2) Specify tags for recipe (optional):</InputLabel>
-                            <TagBar />
+                            <TagBar editMode={true} />
                         </Grid>
                         <Grid item xs={10} className={classes.tagContainer}>
                             <Divider className={classes.otherDivider} />
@@ -275,6 +277,7 @@ class ImportRecipe extends Component {
 ImportRecipe.propTypes = {
     classes: PropTypes.object.isRequired,
     importRecipe: PropTypes.func.isRequired,
+    clearTags: PropTypes.func.isRequired,
     importSucceeded: PropTypes.bool.isRequired,
     importStatusMsg: PropTypes.string.isRequired
 };
@@ -291,4 +294,4 @@ const mapStateToProps = state => {
     });
 };
 
-export default connect(mapStateToProps, { importRecipe })(withStyles(styles, { withTheme: true })(ImportRecipe));
+export default connect(mapStateToProps, { importRecipe, clearTags })(withStyles(styles, { withTheme: true })(ImportRecipe));
