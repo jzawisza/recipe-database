@@ -152,10 +152,9 @@ class ImportRecipe extends Component {
             }
         });
 
-        this.props.importRecipe(this.state.url, store.getState().addTag.tags, this.state.importNotes);
+        this.props.importRecipe(this.state.url, store.getState().manageTags.tags, this.state.importNotes);
 
         // Clear out data that was entered in UI
-        // TODO: clear out tagbar once that capability is added
         document.getElementById(URL_INPUT_ID).value = '';
         this.props.clearTags();
         this.setState(this.getDefaultState(true));

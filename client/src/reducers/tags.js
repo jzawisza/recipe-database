@@ -7,7 +7,7 @@ const initialState = {
     tags: []
 };
 
-export function addTag(state = initialState, action) {
+export function manageTags(state = initialState, action) {
     switch(action.type) {
         case ADD_TAG:
             return Object.assign({}, state, {
@@ -19,13 +19,6 @@ export function addTag(state = initialState, action) {
                 }
                 ]
             });
-    default:
-        return state;
-    }
-}
-
-export function clearTags(state = initialState, action) {
-    switch(action.type) {
         case CLEAR_TAGS:
             return (Object.assign({}, state, {
                 tags: []

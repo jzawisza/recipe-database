@@ -52,7 +52,7 @@ class TagBar extends Component {
 
       store.subscribe(() => {
         this.setState(state => {
-          return { currentTags: store.getState().addTag.tags };
+          return { currentTags: store.getState().manageTags.tags };
         })
       });
 
