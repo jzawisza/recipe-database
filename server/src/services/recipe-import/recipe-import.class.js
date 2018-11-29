@@ -20,10 +20,10 @@ class Service {
     Service.recipeService = options.recipeService;
   }
 
-  async create (data, params) {
+  async create (data, params) {    
     // url is guaranteed to be present because of the before hook:
     // tags and importNotes are optional
-    let { url, tags, importNotes } = params.query;
+    let { url, tags, importNotes } = data;
     await rp(url)
       .then( function(htmlString) {
         // Query parameter values come in as strings, not booleans
@@ -34,7 +34,6 @@ class Service {
 
         if(tags) {
           let tagArray = JSON.parse(atob(tags));
-          console.log(tagArray);
           recipeData.data = { tags: tagArray };
         }
 

@@ -1,10 +1,10 @@
 const errors = require('@feathersjs/errors');
-const noUrlParamError = new errors.BadRequest('A parameter named "url" is required for this endpoint.');
+const noUrlError = new errors.BadRequest('A POST parameter named "url" is required for this endpoint.');
 
 function ensureUrlParam(context) {  
-  let { url } = context.params.query;
+  let { url } = context.data;
   if (!url) {
-    throw noUrlParamError;
+    throw noUrlError;
   }
 }
 

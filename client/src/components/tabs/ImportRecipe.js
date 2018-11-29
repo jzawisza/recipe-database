@@ -22,14 +22,17 @@ import TagBar from '../TagBar';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { MAIN_TITLE } from '../../App';
-import { importRecipe, clearTags } from '../../actions/actions';
+import { clearTags } from '../../actions/actions';
 import { store } from '../../configureStore';
+import { doPost } from '../utils/AjaxUtils';
 
 const URL_ERROR_TEXT = 'The URL entered is not valid.';
 const URL_INPUT_ID = "urlInput";
 const IMPORT_BUTTON_ID = "import-button";
 const IMPORT_BUTTON_DEFAULT_TEXT = "Import";
 const IMPORT_BUTTON_IMPORTING_TEXT = "Importing...";
+const IMPORT_STATUS_OK = "Import succeeded";
+const IMPORT_STATUS_ERROR = "Import failed";
 
 const styles = theme => ({
     container: {
@@ -77,7 +80,9 @@ const styles = theme => ({
     importing: false,
     importButtonText: IMPORT_BUTTON_DEFAULT_TEXT,
     importNotes: false,
-    url: undefined
+    url: undefined,
+    importSucceeded: true,
+    importStatusMsg: ''
   };
 
 class ImportRecipe extends Component {
@@ -152,16 +157,35 @@ class ImportRecipe extends Component {
             }
         });
 
-        this.props.importRecipe(this.state.url, store.getState().manageTags.tags, this.state.importNotes);
+        let encodedTags = window.btoa(JSON.stringify(store.getState().manageTags.tags));
+        let postBody = {
+            url: this.state.url,
+            tags: encodedTags,
+            importNotes: this.state.importNotes
+        };
+        doPost('recipe-import', postBody)
+        .then(responseJson => {
+            // If the call succeeds, the data returned by the server will be identical
+            // to the data passed in as the POST parameters.
+            // Just checking 'url' suffices to establish that we have identical data
+            let importSucceeded = (postBody.url === responseJson.url);
+            // If the call fails, the message parameter gives details about the failure
+            let importStatusMsg = importSucceeded ? IMPORT_STATUS_OK : `${IMPORT_STATUS_ERROR}: ${responseJson.message}`;
 
-        // Clear out data that was entered in UI
-        document.getElementById(URL_INPUT_ID).value = '';
-        this.props.clearTags();
-        this.setState(this.getDefaultState(true));
+            // Clear out data that was entered in UI
+            document.getElementById(URL_INPUT_ID).value = '';
+            this.props.clearTags();
+            this.setState(state => {
+                let newState = this.getDefaultState(true);
+                newState['importSucceeded'] = importSucceeded;
+                newState['importStatusMsg'] = importStatusMsg;
+                return newState;
+            });
+        });
     }
 
     render() {
-        const { classes, importSucceeded, importStatusMsg } = this.props;
+        const { classes } = this.props;
 
         let urlErrorText = '';
         let hasURLError = false;
@@ -171,7 +195,7 @@ class ImportRecipe extends Component {
         }
         let importErrorText = this.state.importErrorText;
         let hasImportError = (importErrorText !== null);
-        let snackbarClass = importSucceeded ? classes.importOk : classes.importError;
+        let snackbarClass = this.state.importSucceeded ? classes.importOk : classes.importError;
 
         return (
             <div>
@@ -250,13 +274,13 @@ class ImportRecipe extends Component {
                         horizontal: 'left',
                     }}
                     open={this.state.importSnackbarVisible}
-                    autoHideDuration={3000}
+                    autoHideDuration={2000}
                     onClose={this.handleCloseImportSnackbar}
                     ContentProps={{
                         'aria-describedby': 'message-id',
                         className: snackbarClass
                     }}
-                    message={<span id="message-id">{importStatusMsg}</span>}
+                    message={<span id="message-id">{this.state.importStatusMsg}</span>}
                     action={[
                         <IconButton
                           key="close"
@@ -275,7 +299,6 @@ class ImportRecipe extends Component {
 
 ImportRecipe.propTypes = {
     classes: PropTypes.object.isRequired,
-    importRecipe: PropTypes.func.isRequired,
     clearTags: PropTypes.func.isRequired,
     importSucceeded: PropTypes.bool.isRequired,
     importStatusMsg: PropTypes.string.isRequired
@@ -286,11 +309,5 @@ ImportRecipe.defaultProps = {
     importStatusMsg: ''
   };
 
-const mapStateToProps = state => {
-    return ({
-        importSucceeded: state.getImportStatus.importSucceeded,
-        importStatusMsg: state.getImportStatus.importStatusMsg
-    });
-};
 
-export default connect(mapStateToProps, { importRecipe, clearTags })(withStyles(styles, { withTheme: true })(ImportRecipe));
+export default connect(null, { clearTags })(withStyles(styles, { withTheme: true })(ImportRecipe));
