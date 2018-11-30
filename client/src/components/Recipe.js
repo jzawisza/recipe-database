@@ -8,9 +8,9 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import Snackbar from '@material-ui/core/Snackbar';
+import Fade from '@material-ui/core/Fade';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
 import EditIcon from '@material-ui/icons/Edit';
 import DoneIcon from '@material-ui/icons/Done';
 import FavoriteIcon from '@material-ui/icons/Favorite';
@@ -65,6 +65,15 @@ const styles = theme => ({
     topIcons: {
         float: 'right',
         display: 'block'
+    },
+    snackbarContent: {
+        color: 'black',
+        backgroundColor: theme.palette.background.default,
+        [theme.breakpoints.up('md')]: {
+            minWidth: 100,
+            maxWidth: 200,
+            borderRadius: theme.shape.borderRadius,
+        }
     }
   });
 
@@ -305,26 +314,18 @@ class Recipe extends Component {
                 <Snackbar
                     anchorOrigin={{
                         vertical: 'bottom',
-                        horizontal: 'left',
+                        horizontal: 'right',
                     }}
                     open={this.state.saveSnackbarVisible}
                     autoHideDuration={2000}
                     onClose={this.handleCloseSaveSnackbar}
+                    TransitionComponent={Fade}
                     ContentProps={{
                         'aria-describedby': 'message-id',
+                        className: classes.snackbarContent
                     }}
                     message={<span id="message-id">Changes saved</span>}
-                    action={[
-                        <IconButton
-                          key="close"
-                          aria-label="Close"
-                          color="inherit"
-                          className={classes.close}
-                          onClick={this.handleCloseSaveSnackbar}
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      ]} />
+                    />
             </div>
         );
     }
