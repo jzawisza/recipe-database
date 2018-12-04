@@ -1,7 +1,7 @@
-// Initializes the `user-favorites` service on path `/user-favorites`
+// Initializes the `saved-recipes` service on path `/saved-recipes`
 const createService = require('feathers-sequelize');
-const createModel = require('../../models/user-favorites.model');
-const hooks = require('./user-favorites.hooks');
+const createModel = require('../../models/saved-recipes.model');
+const hooks = require('./saved-recipes.hooks');
 
 module.exports = function (app) {
   const Model = createModel(app);
@@ -13,10 +13,10 @@ module.exports = function (app) {
   };
 
   // Initialize our service with any options it requires
-  app.use('/user-favorites', createService(options));
+  app.use('/saved-recipes', createService(options));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('user-favorites');
+  const service = app.service('saved-recipes');
 
   service.hooks(hooks);
 };

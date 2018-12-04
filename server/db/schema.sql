@@ -37,7 +37,7 @@ CREATE SEQUENCE recipe_id_seq;
 CREATE SEQUENCE recipe_link_id_seq;
 CREATE SEQUENCE tag_id_seq;
 CREATE SEQUENCE user_id_seq;
-CREATE SEQUENCE user_favorite_id_seq;
+CREATE SEQUENCE saved_recipe_id_seq;
 
 --
 -- Tables
@@ -74,11 +74,14 @@ CREATE TABLE users (
       display_name text NOT NULL
 );
 
-CREATE TABLE user_favorites (
-      id bigint NOT NULL DEFAULT NEXTVAL('user_favorite_id_seq') CONSTRAINT user_favorite_pkey PRIMARY KEY,
+CREATE TYPE saved_recipe_type AS ENUM('FAVORITES', 'MEAL_PLANNER');
+
+CREATE TABLE saved_recipes (
+      id bigint NOT NULL DEFAULT NEXTVAL('saved_recipe_id_seq') CONSTRAINT saved_recipes_pkey PRIMARY KEY,
       user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       recipe_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
-      UNIQUE (user_id, recipe_id)
+      type saved_recipe_type NOT NULL,
+      UNIQUE (user_id, recipe_id, type)
 );
 
 --
@@ -88,7 +91,7 @@ ALTER SEQUENCE recipe_id_seq OWNED BY recipes.id;
 ALTER SEQUENCE recipe_link_id_seq OWNED BY recipe_links.id;
 ALTER SEQUENCE tag_id_seq OWNED BY tags.id;
 ALTER SEQUENCE user_id_seq OWNED BY users.id;
-ALTER SEQUENCE user_favorite_id_seq OWNED BY user_favorites.id;
+ALTER SEQUENCE saved_recipe_id_seq OWNED BY saved_recipes.id;
 
 --
 -- Default user
