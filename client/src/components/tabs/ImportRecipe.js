@@ -165,12 +165,16 @@ class ImportRecipe extends Component {
         };
         doPost('recipe-import', postBody)
         .then(responseJson => {
-            // If the call succeeds, the data returned by the server will be identical
-            // to the data passed in as the POST parameters.
-            // Just checking 'url' suffices to establish that we have identical data
-            let importSucceeded = (postBody.url === responseJson.url);
+            // If the call succeeds, the data returned by the server will have an 'id' field
+            // representing the new record created
+            let importSucceeded = responseJson.id;
             // If the call fails, the message parameter gives details about the failure
-            let importStatusMsg = importSucceeded ? IMPORT_STATUS_OK : `${IMPORT_STATUS_ERROR}: ${responseJson.message}`;
+            let errMsg = responseJson.message;
+            // If the response JSON has an errors array, use that to get additional context
+            if(Array.isArray(responseJson.errors)) {
+                errMsg += ` (${responseJson.errors[0].message})`;
+            }
+            let importStatusMsg = importSucceeded ? IMPORT_STATUS_OK : `${IMPORT_STATUS_ERROR}: ${errMsg}`;
 
             // Clear out data that was entered in UI
             document.getElementById(URL_INPUT_ID).value = '';

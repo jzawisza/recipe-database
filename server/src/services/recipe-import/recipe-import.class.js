@@ -24,36 +24,41 @@ class Service {
     // url is guaranteed to be present because of the before hook:
     // tags and importNotes are optional
     let { url, tags, importNotes } = data;
+    let recipeData = undefined;
+
     await rp(url)
-      .then( function(htmlString) {
-        // Query parameter values come in as strings, not booleans
-        let shouldImportNotes = (importNotes === 'true');
+    .then( function(htmlString) {
+      // Query parameter values come in as strings, not booleans
+      let shouldImportNotes = (importNotes === 'true');
 
-        let importer = getImporterForUrl(url);
-        let recipeData = importer.import(url, htmlString, shouldImportNotes);
+      let importer = getImporterForUrl(url);
+      recipeData = importer.import(url, htmlString, shouldImportNotes);
 
-        if(tags) {
-          let tagArray = JSON.parse(atob(tags));
-          recipeData.data = { tags: tagArray };
-        }
+      if(tags) {
+        let tagArray = JSON.parse(atob(tags));
+        recipeData.data = { tags: tagArray };
+      }
+    })
+    .catch( function(err) {
+      if(err.statusCode === 404) {
+        throw new errors.NotFound('URL is not valid', err.url);
+      }
+      else {
+        throw new errors.GeneralError(err);
+      }
+    });
 
-        // Write to database
-        Service.recipeService.create(recipeData)
-          .catch( function(err) {
-            // TODO: figure out why this exception isn't propagating
-            throw new errors.GeneralError(err);
-          });
-      })
-      .catch( function(err) {        
-        if(err.statusCode === 404) {
-          throw new errors.NotFound('URL is not valid', err.url);
-        }
-        else {
-          throw new errors.GeneralError(err);
-        }
-      });
+    // Write to database
+    let retVal = {};
+    await Service.recipeService.create(recipeData)
+    .then( function(returnData) {
+      retVal = returnData;
+    })
+    .catch( function(err) {
+      throw new errors.GeneralError(err);
+    });
 
-    return Promise.resolve(data);
+    return Promise.resolve(retVal);
   }
 }
 
