@@ -9,7 +9,7 @@ const SERVES_KEY = 'recipeYield';
 const INGREDIENTS_KEY = 'recipeIngredient';
 const PREPARATION_KEY = 'recipeInstructions';
 const NOTES_KEY = 'description';
-const SERVES_REGEX = /(\d+) servings/;
+const SERVES_REGEX = /(\d+)/;
 
 class BonAppetitImporter {
   import(url, htmlString, shouldImportNotes) {
