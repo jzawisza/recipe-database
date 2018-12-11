@@ -10,6 +10,8 @@ import FormControl from '@material-ui/core/FormControl';
 import Snackbar from '@material-ui/core/Snackbar';
 import Fade from '@material-ui/core/Fade';
 import Tooltip from '@material-ui/core/Tooltip';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import EditIcon from '@material-ui/icons/Edit';
 import DoneIcon from '@material-ui/icons/Done';
@@ -18,25 +20,13 @@ import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
 import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
 import { debounce } from 'throttle-debounce';
+import { Helmet } from 'react-helmet';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
-import { Helmet } from 'react-helmet';
 import { MAIN_TITLE } from '../App';
+import { doGet } from './utils/AjaxUtils';
 
 const REQUIRED_FIELD_LABEL = "This field is required."
-
-const SAMPLE_DATA = {
-    "id": "23",
-    "source": "Cooking Light, September 2018",
-    "title": "Thai Chicken Pizza",
-    "ingredients": "10 ounces fresh prepared whole-wheat pizza dough, at room temperature\n1/4 cup well-shaken and stirred light coconut milk\n3 tablespoons creamy peanut butter\n1 tablespoon fresh lime juice\n2 teaspoons lower-sodium soy sauce\n2 teaspoons Sriracha chili sauce\n1 teaspoon light brown sugar\n1/2 teaspoon grated peeled fresh ginger\n<a href=\"https://www.cookinglight.com/recipes/french-onion-roast-chicken\">1 1/2 cups shredded chicken (from French Onion Roast Chicken)</a>\n1/2 cup matchstick-cut carrots\n1 1/2 ounces Monterey Jack cheese, finely shredded (about 2/3 cup)\n2  scallions, thinly sliced\n1/3 cup fresh bean sprouts\n1/4 cup fresh cilantro leaves",
-    "preparation": "Preheat oven to 500°F. Place a pizza stone in oven while it preheats.\n\nPlace pizza dough on a lightly floured surface; roll into a 14- x 10-inch rectangle. Transfer to parchment paper. Pierce all over with a fork. Transfer dough and parchment to hot pizza stone; bake at 500°F until lightly browned, about 5 minutes.\n\nCombine coconut milk and next 6 ingredients (through ginger) in a bowl. Remove crust on parchment from oven. Spread 1/2 cup coconut milk mixture on crust, leaving a 1/2-inch border. Top with chicken, carrots, and cheese. Return pizza on parchment to hot pizza stone in oven; bake at 500°F until cheese melts, about 4 minutes. Drizzle with remaining coconut milk mixture; top with scallions, sprouts, and cilantro. Cut into 8 pieces.",
-    "serves": 4,
-    "caloriesPerServing": 353,
-    "data": "{}",
-    "creation_time": "2018-09-13T02:18:13.466Z",
-    "modified_time": "2018-09-13T02:18:13.466Z"
-};
 
 // Default number of rows for text areas that contain no text
 const DEFAULT_ROWS = 8;
@@ -81,13 +71,6 @@ class Recipe extends Component {
     constructor(props) {
         super(props);
 
-        if (props.id) {
-            // TODO: fetch data from database
-            for (let key in SAMPLE_DATA) {
-                this.state[key] = SAMPLE_DATA[key];
-            }
-        }
-
         this.persistChange = debounce(500, this.persistChange);
     }
 
@@ -95,8 +78,39 @@ class Recipe extends Component {
         saveSnackbarVisible: false,
         isFavorite: false,
         isMealPlanner: false,
-        editMode: false
+        editMode: false,
+        loading: true,
     };
+
+    componentDidMount() {
+        // If we're calling this component in the context of viewing an existing recipe,
+        // load that recipe from the database
+        if(this.props.id) {
+            doGet(`recipes/${this.props.id}`).then(responseJson => {
+                // If the server returns an error, display an appropriate message
+                if(responseJson.code && responseJson.message) {
+                    this.setState({
+                        loadingErrMsg: responseJson.message,
+                        loading: false
+                    });
+                    return;
+                }
+                this.setState(state => {
+                    let newState = state;
+                    for (let key in responseJson) {
+                        newState[key] = responseJson[key];
+                    }
+                    newState.loading = false;
+                    return newState;
+                });
+            })
+        }
+        else {
+            this.setState({
+                loading: false
+            })
+        }
+    }
 
     handleChange = name => event => {
         this.setState({
@@ -153,6 +167,53 @@ class Recipe extends Component {
         let ingredientsErrorText = showIngredientsError ? REQUIRED_FIELD_LABEL : "";
         let showPreparationError = !this.state.preparation && !disableEditing;
         let preparationErrorText = showPreparationError ? REQUIRED_FIELD_LABEL : "";
+
+        // Display an error message if we tried to load data
+        // from the server and failed
+        if(this.state.loadingErrMsg) {
+            return (
+                <div className={classes.root}>
+                    {titleStr &&
+                        <Helmet>
+                            <title>{titleStr}</title>
+                        </Helmet>
+                    }
+                    <Typography
+                        color='error'
+                        variant='body1'
+                        gutterBottom
+                    >
+                        Error loading recipe: {this.state.loadingErrMsg}
+                    </Typography>
+                </div>
+            );
+        }
+
+        // Show spinner while we're loading data
+        if(this.state.loading) {
+            return (
+                <div className={classes.root}>
+                {titleStr &&
+                    <Helmet>
+                        <title>{titleStr}</title>
+                    </Helmet>
+                }
+                    <Grid
+                        container
+                        spacing={0}
+                        direction='column'
+                        alignItems='center'
+                        justify='center'
+                    >
+                        <Grid item xs={3}>
+                            <CircularProgress
+                                size={200}
+                            />
+                        </Grid>
+                    </Grid>
+                </div>
+            );
+        }
 
         return (
             <div className={classes.root}>
