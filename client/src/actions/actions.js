@@ -16,8 +16,10 @@ function createErrorObject(type, status, errMsg, otherProps = {}) {
 export function addTag(tag) {
     return {
         type: ADD_TAG,
-        tagId: tag.id,
-        tagName: tag.name
+        payload: {
+            tagId: tag.id,
+            tagName: tag.name
+        }
     }
 }
 

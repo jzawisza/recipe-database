@@ -14,8 +14,8 @@ export function manageTags(state = initialState, action) {
                 tags: [
                 ...state.tags,
                 {
-                    id: action.tagId,
-                    name: action.tagName
+                    id: action.payload.tagId,
+                    name: action.payload.tagName
                 }
                 ]
             });
