@@ -7,7 +7,7 @@ class ViewRecipe extends Component {
         
         return (
             <React.Fragment>
-                <Recipe id={recipeId}/>
+                <Recipe id={recipeId} newRecipe={false}/>
             </React.Fragment>
         );
     }

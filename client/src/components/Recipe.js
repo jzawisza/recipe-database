@@ -21,10 +21,12 @@ import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
 import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
 import { debounce } from 'throttle-debounce';
 import { Helmet } from 'react-helmet';
+import { connect } from 'react-redux';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
 import { MAIN_TITLE } from '../App';
-import { doGet } from './utils/AjaxUtils';
+import { doGet, isErrorResponse, getErrMsg } from './utils/AjaxUtils';
+import { createNewRecipe, modifyRecipe, clearRecipe } from '../actions/actions';
 
 const REQUIRED_FIELD_LABEL = "This field is required."
 
@@ -88,9 +90,9 @@ class Recipe extends Component {
         if(this.props.id) {
             doGet(`recipes/${this.props.id}`).then(responseJson => {
                 // If the server returns an error, display an appropriate message
-                if(responseJson.code && responseJson.message) {
+                if(isErrorResponse(responseJson)) {
                     this.setState({
-                        loadingErrMsg: responseJson.message,
+                        loadingErrMsg: getErrMsg(responseJson),
                         loading: false
                     });
                     return;
@@ -106,10 +108,15 @@ class Recipe extends Component {
             })
         }
         else {
+            this.props.createNewRecipe();
             this.setState({
                 loading: false
             })
         }
+    }
+
+    componentWillUnmount() {
+        this.props.clearRecipe();
     }
 
     handleChange = name => event => {
@@ -120,7 +127,8 @@ class Recipe extends Component {
       };
 
     persistChange(name, value) {
-        // TODO: persist change to database here
+        this.props.modifyRecipe(name, value, this.props.id);
+
         this.setState({
             saveSnackbarVisible: true
         });
@@ -142,13 +150,13 @@ class Recipe extends Component {
     }; 
 
     render() {
-        const { classes, id } = this.props;
+        // The id and newRecipe props have the following meaning.
+        //
+        // id = undefined, newRecipe = true   - Add Recipe tab, initial load
+        // id = some value, newRecipe = true  - Add Recipe tab, recipe created on server
+        // id = some value, newRecipe = false - View Recipe tab
+        const { classes, id, newRecipe } = this.props;
         
-        // If a recipe ID was passed into this component,
-        // we're asking to view an existing recipe, so 'id' will evaluate to true.
-        // Otherwise, we're asking to enter a new recipe into the database,
-        // and 'id' will evaluate to false.
-        let isNewRecipe = !id;
         // Enable editing if this is a new recipe
         let disableEditing = false;
         // Only update the page title if this is an existing recipe:
@@ -156,7 +164,7 @@ class Recipe extends Component {
         let titleStr = null;
         // If this is an existing recipe, editing is disabled by default,
         // and enabled only if the user has explicitly requested edit mode
-        if (!isNewRecipe) {
+        if (!newRecipe) {
             disableEditing = !this.state.editMode;
             titleStr = `${this.state.title} - ${MAIN_TITLE}`;
         }
@@ -224,7 +232,7 @@ class Recipe extends Component {
                 }
                 <form className={classes.container}>
                     <Grid container spacing={0} wrap="wrap">
-                        {!isNewRecipe &&
+                        {!newRecipe &&
                             <Grid item xs={12}>
                                 <Tooltip title={this.state.editMode ? 'Finish editing recipe' : 'Edit recipe'}>
                                     <IconButton
@@ -394,7 +402,22 @@ class Recipe extends Component {
 
 Recipe.propTypes = {
     classes: PropTypes.object.isRequired,
-    id: PropTypes.string
+    createNewRecipe: PropTypes.func.isRequired,
+    modifyRecipe: PropTypes.func.isRequired,
+    clearRecipe: PropTypes.func.isRequired,
+    id: PropTypes.string,
+    newRecipe: PropTypes.bool.isRequired
 };
 
-export default withStyles(styles, { withTheme: true })(Recipe); 
+const mapStateToProps = (state, ownProps) => {
+    if(state.editRecipe.recipe) {
+        return {
+            id: state.editRecipe.recipe.id
+        }
+    }
+    else {
+        return { id: ownProps.id }
+    }
+}
+
+export default connect(mapStateToProps, { createNewRecipe, modifyRecipe, clearRecipe })(withStyles(styles, { withTheme: true })(Recipe));

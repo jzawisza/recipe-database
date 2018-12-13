@@ -9,20 +9,41 @@ async function doHttpRequest(url, options = {}) {
     return await response.json();
 }
 
-function doGet(url) {
+function generateHeaders(requestBody, requestType) {
+    return {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody),
+          method: requestType
+    }
+}
+
+
+export function doGet(url) {
     return doHttpRequest(url);
 }
 
-function doPost(url, postBody) {
-    let postPayload = {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(postBody),
-        method: 'POST'
-      };
-    return doHttpRequest(url, postPayload);
+export function doPost(url, postBody) {
+    return doHttpRequest(url, generateHeaders(postBody, 'POST'));
 }
 
-export { doGet, doPost };
+export function doPatch(url, putBody) {
+    return doHttpRequest(url, generateHeaders(putBody, 'PATCH'));
+}
+
+// Return whether the JSON returned by the server represents an error
+export function isErrorResponse(responseJson) {
+    return (responseJson.code && responseJson.message);
+}
+
+// If this is an error response, return the error message
+export function getErrMsg(responseJson) {
+    return responseJson.message;
+}
+
+// If this is an error response, return the error code (404, 500, etc.)
+export function getErrCode(responseJson) {
+    return responseJson.code;
+}

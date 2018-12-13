@@ -303,15 +303,6 @@ class ImportRecipe extends Component {
 
 ImportRecipe.propTypes = {
     classes: PropTypes.object.isRequired,
-    clearTags: PropTypes.func.isRequired,
-    importSucceeded: PropTypes.bool.isRequired,
-    importStatusMsg: PropTypes.string.isRequired
-};
-
-ImportRecipe.defaultProps = {
-    importSucceeded: true,
-    importStatusMsg: ''
-  };
-
+    clearTags: PropTypes.func.isRequired};
 
 export default connect(null, { clearTags })(withStyles(styles, { withTheme: true })(ImportRecipe));
