@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import TableCell from '@material-ui/core/TableCell';
 import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
-import SortablePaginatedTable from '../components/tables/SortablePaginatedTable';
+import SortablePaginatedTable from './SortablePaginatedTable';
 
 const HEADER_ROWS = [
     { id: 'title', numeric: false, disablePadding: true, label: 'Title' }

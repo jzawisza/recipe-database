@@ -25,7 +25,7 @@ import { connect } from 'react-redux';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
 import { MAIN_TITLE } from '../App';
-import { doGet, isErrorResponse, getErrMsg } from './utils/AjaxUtils';
+import { doGet, isErrorResponse, getErrMsg } from '../utils/AjaxUtils';
 import { createNewRecipe, modifyRecipe, clearRecipe } from '../actions/actions';
 
 const REQUIRED_FIELD_LABEL = "This field is required."

@@ -5,7 +5,7 @@ import {
     MODIFY_RECIPE,
     CLEAR_RECIPE
 } from './actionTypes';
-import { doPost, doPatch, isErrorResponse, getErrMsg, getErrCode } from '../components/utils/AjaxUtils';
+import { doPost, doPatch, isErrorResponse, getErrMsg, getErrCode } from '../utils/AjaxUtils';
 
 // Helper function to create an error object
 function createErrorObject(type, status, errMsg, otherProps = {}) {

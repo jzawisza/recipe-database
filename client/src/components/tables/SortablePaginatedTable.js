@@ -10,7 +10,7 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 import SharedTableHead from './SharedTableHead';
 import SharedTableToolbar from './SharedTableToolbar';
-import { getSorting } from '../utils/SortUtils';
+import { getSorting } from '../../utils/SortUtils';
 
 // NOTE: this code is adapted from the Material UI table samples at
 // https://material-ui.com/demos/tables/

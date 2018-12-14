@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import TableCell from '@material-ui/core/TableCell';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SortablePaginatedTable from './SortablePaginatedTable';
-import { getSorting } from '../utils/SortUtils';
+import { getSorting } from '../../utils/SortUtils';
 
 const HEADER_ROWS = [
     { id: 'title', numeric: false, disablePadding: true, label: 'Title' },

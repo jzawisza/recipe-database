@@ -24,7 +24,7 @@ import { connect } from 'react-redux';
 import { MAIN_TITLE } from '../../App';
 import { clearTags } from '../../actions/actions';
 import { store } from '../../configureStore';
-import { doPost } from '../utils/AjaxUtils';
+import { doPost } from '../../utils/AjaxUtils';
 
 const URL_ERROR_TEXT = 'The URL entered is not valid.';
 const URL_INPUT_ID = "urlInput";

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
-import ReviewTable from '../ReviewTable';
+import ReviewTable from '../tables/ReviewTable';
 
 const TITLE_MEAL_PLANNER = 'Meal Planner';
 const TITLE_FAVORITES = 'Favorites';
