@@ -21,6 +21,9 @@ import ViewRecipe from './components/tabs/ViewRecipe';
 
 export const MAIN_TITLE = 'Recipe Database 2.0';
 
+// TODO: add multi-user support
+export const DEFAULT_USER_ID = 0;
+
 const styles = theme => ({
   root: {
     backgroundColor: theme.palette.background.paper

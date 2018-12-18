@@ -19,6 +19,12 @@ module.exports = function (app) {
     },
     type: {
       type: DataTypes.ENUM('FAVORITES', 'MEAL_PLANNER'),
+      unique: 'savedRecipeUniqueIndex',
+      allowNull: false
+    },
+    value: {
+      type: DataTypes.BOOLEAN,
+      unique: 'savedRecipeUniqueIndex',
       allowNull: false
     }
   }, {

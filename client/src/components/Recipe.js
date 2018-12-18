@@ -24,14 +24,17 @@ import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
-import { MAIN_TITLE } from '../App';
-import { doGet, isErrorResponse, getErrMsg } from '../utils/AjaxUtils';
+import { MAIN_TITLE, DEFAULT_USER_ID } from '../App';
+import { doGet, isErrorResponse, getErrMsg, doPost, doPatch } from '../utils/AjaxUtils';
 import { createNewRecipe, modifyRecipe, clearRecipe } from '../actions/actions';
 
 const REQUIRED_FIELD_LABEL = "This field is required."
 
 // Default number of rows for text areas that contain no text
 const DEFAULT_ROWS = 8;
+
+const FAVORITE_TYPE_STR = 'FAVORITES';
+const MEAL_PLANNER_TYPE_STR = 'MEAL_PLANNER';
 
 const styles = theme => ({
     root: {
@@ -78,10 +81,10 @@ class Recipe extends Component {
 
     state = {
         saveSnackbarVisible: false,
-        isFavorite: false,
-        isMealPlanner: false,
         editMode: false,
         loading: true,
+        savedRecipeIsFavorite: false,
+        savedRecipeIsMealPlanner: false
     };
 
     componentDidMount() {
@@ -105,7 +108,31 @@ class Recipe extends Component {
                     newState.loading = false;
                     return newState;
                 });
-            })
+            });
+
+            // Also get saved recipe information to see if this is a Favorite
+            // or Meal Planner recipe (multi-user support to be added later)
+            doGet(`saved-recipes?recipeId=${this.props.id}&userId=${DEFAULT_USER_ID}`).then(responseJson => {
+                for (let index in responseJson.data) {
+                    let savedValue = responseJson.data[index];
+                    switch(savedValue.type) {
+                        case FAVORITE_TYPE_STR:
+                            this.setState({
+                                savedRecipeFavoriteId: savedValue.id,
+                                savedRecipeIsFavorite: savedValue.value
+                            });
+                            break;
+                        case MEAL_PLANNER_TYPE_STR:
+                            this.setState({
+                                savedRecipeMealPlannerId: savedValue.id,
+                                savedRecipeIsMealPlanner: savedValue.value
+                            });
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
         }
         else {
             this.props.createNewRecipe();
@@ -147,7 +174,78 @@ class Recipe extends Component {
         this.setState({
           [name]: !prevValue
         })
-    }; 
+    };
+
+    // Toggle the state of one of the variables representing a
+    // saved recipe, and update the database accordingly
+    toggleSavedRecipeState = toggleFavorite => event => {
+        let idKey = undefined;
+        let valueKey = undefined;
+
+        if (toggleFavorite) {
+            idKey = 'savedRecipeFavoriteId';
+            valueKey = 'savedRecipeIsFavorite';
+        }
+        else {
+            idKey = 'savedRecipeMealPlannerId';
+            valueKey = 'savedRecipeIsMealPlanner';
+        }
+        let prevValue = this.state[valueKey];
+        let savedRecipeId = this.state[idKey];
+
+        if (savedRecipeId) {
+            // If we have a saved recipe ID, the record already exists
+            // in the database, so do a PATCH to update it
+            let payload = {
+                id: savedRecipeId,
+                value: !prevValue
+            }
+            doPatch('saved-recipes', payload)
+            .then(responseJson => {
+                if (isErrorResponse(responseJson)) {
+                    console.error('Error deleting saved recipe information from database');
+                    console.error(getErrMsg(responseJson));
+                }
+                else {
+                    this.setState({
+                        [valueKey]: !prevValue
+                    });
+                }
+            })
+            .catch(err => {
+                console.error('Error connecting to database');
+                console.error(err);
+            });
+        }
+        else {
+            // If we don't have a saved recipe ID, we need to create a new
+            // database record, so do a POST
+            let typeStr = toggleFavorite ? FAVORITE_TYPE_STR : MEAL_PLANNER_TYPE_STR;
+            let payload = {
+                recipeId: this.props.id,
+                userId: DEFAULT_USER_ID,
+                type: typeStr,
+                value: true
+            };
+            doPost('saved-recipes', payload)
+            .then(responseJson => {
+                if (isErrorResponse(responseJson)) {
+                    console.error('Error adding saved recipe information to database');
+                    console.error(getErrMsg(responseJson));
+                }
+                else {
+                    this.setState({
+                        [idKey]: responseJson.id,
+                        [valueKey]: true
+                    })
+                }
+            })
+            .catch(err => {
+                console.error('Error connecting to database');
+                console.error(err);
+            });
+        }
+    };
 
     render() {
         // The id and newRecipe props have the following meaning.
@@ -156,6 +254,7 @@ class Recipe extends Component {
         // id = some value, newRecipe = true  - Add Recipe tab, recipe created on server
         // id = some value, newRecipe = false - View Recipe tab
         const { classes, id, newRecipe } = this.props;
+
         
         // Enable editing if this is a new recipe
         let disableEditing = false;
@@ -245,26 +344,26 @@ class Recipe extends Component {
                                         {this.state.editMode ? <DoneIcon /> : <EditIcon />}
                                     </IconButton>
                                 </Tooltip>
-                                <Tooltip title={this.state.isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}>
+                                <Tooltip title={this.state.savedRecipeIsFavorite ? 'Remove from Favorites' : 'Add to Favorites'}>
                                     <IconButton
                                         key='isFavorite'
                                         color='primary'
                                         aria-label='Mark as favorite'
                                         className={classes.topIcons}
-                                        onClick={this.toggle('isFavorite').bind(this)}
+                                        onClick={this.toggleSavedRecipeState(true).bind(this)}
                                     >
-                                        {this.state.isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                        {this.state.savedRecipeIsFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                                     </IconButton>
                                 </Tooltip>
-                                <Tooltip title={this.state.isMealPlanner ? 'Remove from Meal Planner' : 'Add to Meal Planner'}>
+                                <Tooltip title={this.state.savedRecipeIsMealPlanner ? 'Remove from Meal Planner' : 'Add to Meal Planner'}>
                                     <IconButton
                                         key='isMealPlanner'
                                         color='primary'
                                         aria-label='Add to Meal Planner'
                                         className={classes.topIcons}
-                                        onClick={this.toggle('isMealPlanner').bind(this)}
+                                        onClick={this.toggleSavedRecipeState(false).bind(this)}
                                     >
-                                        {this.state.isMealPlanner ? <RemoveShoppingCartIcon /> : <AddShoppingCartIcon />}
+                                        {this.state.savedRecipeIsMealPlanner ? <RemoveShoppingCartIcon /> : <AddShoppingCartIcon />}
                                     </IconButton>
                                 </Tooltip>
                             </Grid>

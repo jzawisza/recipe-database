@@ -81,7 +81,8 @@ CREATE TABLE saved_recipes (
       user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       recipe_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
       type saved_recipe_type NOT NULL,
-      UNIQUE (user_id, recipe_id, type)
+      value boolean NOT NULL,
+      UNIQUE (user_id, recipe_id, type, value)
 );
 
 --
