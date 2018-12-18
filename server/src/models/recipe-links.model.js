@@ -23,18 +23,12 @@ module.exports = function (app) {
       beforeCount(options) {
         options.raw = true;
       }
-    },
-
-    classMethods: {
-      associate(models) {
-        recipeLinks.sourceId.associate(models.recipes);
-        recipeLinks.destId.associate(models.recipes);
-      }
     }
   });
 
-  // eslint-disable-next-line no-unused-vars
   recipeLinks.associate = function (models) {
+    recipeLinks.belongsTo(models.recipes, { as: 'SourceRecipe', foreignKey: 'sourceId'});
+    recipeLinks.belongsTo(models.recipes, { as: 'DestRecipe', foreignKey: 'destId'});
   };
 
   return recipeLinks;

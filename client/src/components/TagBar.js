@@ -85,7 +85,7 @@ class TagBar extends Component {
           notInParams += `&id[$notIn][]=${existingTag.id}`;
         });
         
-        doGet(`tags?name[$like]=${value}%${notInParams}`).then(responseJson => {
+        doGet(`tags?name[$like]=${inputValue}%${notInParams}`).then(responseJson => {
           let serverSuggestions = responseJson.data;
 
           // Unless we have an exact match, give the user the option

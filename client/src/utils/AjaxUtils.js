@@ -33,6 +33,10 @@ export function doPatch(url, putBody) {
     return doHttpRequest(url, generateHeaders(putBody, 'PATCH'));
 }
 
+export function doDelete(url) {
+    return doHttpRequest(url, { method: 'DELETE' });
+}
+
 // Return whether the JSON returned by the server represents an error
 export function isErrorResponse(responseJson) {
     return (responseJson.code && responseJson.message);

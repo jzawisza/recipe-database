@@ -1,23 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types'
 import Autosuggest from 'react-autosuggest';
+import { Link } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import { Grid } from '@material-ui/core';
 import CloseIcon from '@material-ui/icons/Close';
 import IconButton from '@material-ui/core/IconButton';
 import { renderInput, renderSuggestion, renderSuggestionsContainer, getSuggestionValue } from '../utils/AutoCompleteUtils';
+import { doGet, isErrorResponse, getErrMsg, doPost, doDelete } from '../utils/AjaxUtils';
 import '../App.css';
-
-const LINKED_RECIPES_TEST = [
-    {id: 2, title: 'Chicken Curry'},
-    {id: 3, title: 'Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita Raita'}
-];
-
-const OTHER_RECIPES_TEST = [
-    {id: 4, title: 'Fettucine Alfredo'},
-    {id: 5, title: 'Fish and Chips'},
-    {id: 6, title: 'Miso-Glazed Salmon'}
-];
 
 const styles = theme => ({
     root: {
@@ -57,7 +48,11 @@ class RecipeLinkItem extends Component {
     render() {
          return (
             <div className="recipe-link">
-                <div className="recipe-link-item recipe-link-title">{this.props.value.title}</div>
+                <div className="recipe-link-item recipe-link-title">
+                    <Link to={`/recipes/${this.props.value.recipeId}`}>
+                        {this.props.value.title}
+                    </Link>
+                </div>
                 {this.props.editMode &&
                     <div className="recipe-link-item">
                         <IconButton aria-label="Delete" onClick={this.onClickCloseIcon} className={this.props.className}>
@@ -74,53 +69,86 @@ class RecipeLinks extends Component {
     constructor(props) {
         super(props);
 
-        // If we're viewing an recipe, simulate having recipe link data
-        // TODO: replace this with database fetch
-        let hasData = props.recipeId;
-        this.state.linkedRecipes = hasData ? LINKED_RECIPES_TEST : [];
-
         this.deleteLinkItem = this.deleteLinkItem.bind(this);
     }
 
-    // TODO: replace test data with real data
     state = {
-        otherRecipes: OTHER_RECIPES_TEST,
         recipeLinkValue: '',
-        suggestions: []
+        suggestions: [],
+        linkedRecipes: []
     };
+
+    componentDidMount() {
+        let recipeId = this.props.recipeId;
+        doGet(`recipe-links/?$or[0][sourceId]=${recipeId}&$or[1][destId]=${recipeId}`)
+        .then(responseJson => {
+            if (isErrorResponse(responseJson)) {
+                console.error('Error retrieving saved recipe information from database');
+                console.error(getErrMsg(responseJson));
+            }
+            else {
+                let linkedRecipes = responseJson.data.map(recipe => {
+                    let newRecipe = (({ id }) => ({ id }))(recipe);
+                    // Because links are bidirectional, either the source or the destination can be
+                    // the recipe we're linking to (as opposed to the current recipe).
+                    // Check both cases so that we construct our array of linked recipes correctly.
+                    if(recipe.sourceId === recipeId) {
+                        newRecipe.recipeId = recipe.destId;
+                        newRecipe.title = recipe.destTitle;
+                    }
+                    else {
+                        newRecipe.recipeId = recipe.sourceId;
+                        newRecipe.title = recipe.sourceTitle;
+                    }
+
+                    return newRecipe;
+                });
+                this.setState( { linkedRecipes } );
+            }
+        })
+    }
     
 
     deleteLinkItem(linkItem) {
-        this.setState(state => {
-            let linkedRecipes = [...state.linkedRecipes];
-            let otherRecipes = [...state.otherRecipes];
-            let linkToDeleteIndex = linkedRecipes.indexOf(linkItem);
-            linkedRecipes.splice(linkToDeleteIndex, 1);
-            otherRecipes.push(linkItem);
-            return { linkedRecipes, otherRecipes };
-          });
+        doDelete(`recipe-links/${linkItem.id}`)
+        .then(responseJson => {
+            if (isErrorResponse(responseJson)) {
+                console.error('Error adding saved recipe information to database');
+                console.error(getErrMsg(responseJson));
+            }
+            else {
+                this.setState(state => {
+                    let linkedRecipes = [...state.linkedRecipes];
+                    let linkToDeleteIndex = linkedRecipes.indexOf(linkItem);
+                    linkedRecipes.splice(linkToDeleteIndex, 1);
+                    return { linkedRecipes  };
+                  });
+            }
+        });
     };
 
     handleSuggestionsFetchRequested = ({value}) => {
         const inputValue = value.trim();
-        const inputLength = inputValue.length;
-        let count = 0;
-            
-        let newSuggestions = (inputLength === 0)
-            ? []
-            : this.state.otherRecipes.filter(suggestion => {
-                const keep =
-                count < 5 && suggestion.title.slice(0, inputLength) === inputValue;
-        
-                if (keep) {
-                    count += 1;
-                }
-        
-                return keep;
-            });
 
-        this.setState({
-            suggestions: newSuggestions
+        // Create a query for all recipes matching the input that will
+        // - Exclude the current recipe
+        // - Return only the id and title fields
+        // - Limit the search results to 5 recipes
+        doGet(`recipes?title[$like]=${inputValue}%&id[$ne]=${this.props.recipeId}&$select[]=id&$select[]=title&$limit=5`)
+        .then(responseJson => {
+            if (isErrorResponse(responseJson)) {
+                console.error('Error adding saved recipe information to database');
+                console.error(getErrMsg(responseJson));
+            }
+            else {
+                this.setState({
+                    suggestions: responseJson.data
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error getting linked recipe suggestions');
+            console.error(err);
         });
     };
 
@@ -131,16 +159,24 @@ class RecipeLinks extends Component {
     };
 
     handleSuggestionSelected = (event, { suggestion }) => {
-        this.setState(state => {
-          let linkedRecipes = [...state.linkedRecipes];
-          let otherRecipes = [...state.otherRecipes];
-          // Add item to linked recipe list
-          linkedRecipes.push(suggestion);
-          // Remove item from other recipe list
-          otherRecipes.splice(otherRecipes.indexOf(suggestion), 1);
-          let newState = { linkedRecipes, otherRecipes };
-          newState['recipeLinkValue'] = '';
-          return newState;
+        let payload = {
+          sourceId: this.props.recipeId,
+          destId: suggestion.id  
+        };
+        doPost('recipe-links', payload)
+        .then(responseJson => {
+            let linkedRecipe = {
+                id: responseJson.id,
+                recipeId: responseJson.destId,
+                title: suggestion.title
+            }
+            this.setState(state => {
+                let linkedRecipes = [...state.linkedRecipes];
+                linkedRecipes.push(linkedRecipe);
+                let newState = { linkedRecipes };
+                newState['recipeLinkValue'] = '';
+                return newState;
+              });
         });
       };
 
@@ -197,6 +233,8 @@ class RecipeLinks extends Component {
 
 RecipeLinks.propTypes = {
     classes: PropTypes.object.isRequired,
+    recipeId: PropTypes.string.isRequired,
+    editMode: PropTypes.bool.isRequired
   };
   
   export default withStyles(styles)(RecipeLinks);

@@ -81,7 +81,8 @@ class App extends Component {
         <Route path='/import' render={() => <TabContainer dir={theme.direction}><ImportRecipe /></TabContainer>} />
         <Route path='/plan' render={() => <TabContainer dir={theme.direction}><ReviewRecipes isMealPlanner={true} /></TabContainer>} />
         <Route path='/favorites' render={() => <TabContainer dir={theme.direction}><ReviewRecipes isMealPlanner={false} /></TabContainer>} />
-        <Route path='/recipes/:recipeId' render={({ match }) => <TabContainer dir={theme.direction}><ViewRecipe recipeId={match.params.recipeId}/></TabContainer>} />
+        {/* Define a 'key' attribute on the ViewRecipe component so that React remounts the component if the recipe ID changes (needed for linked recipes to load) */}
+        <Route path='/recipes/:recipeId' render={({ match }) => <TabContainer dir={theme.direction}><ViewRecipe recipeId={match.params.recipeId} key={match.params.recipeId}/></TabContainer>} />
         {/* Redirect if we're navigating to the main screen of the app, i.e. no other route is specified */}
         {initialLoad && <Redirect from='/' to='/search' />}
 
