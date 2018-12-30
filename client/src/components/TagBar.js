@@ -5,9 +5,9 @@ import { withStyles } from '@material-ui/core/styles';
 import Chip from '@material-ui/core/Chip';
 import { Grid } from '@material-ui/core';
 import { renderInput, renderSuggestion, renderSuggestionsContainer, getSuggestionValue } from '../utils/AutoCompleteUtils';
-import { doGet, doPost } from '../utils/AjaxUtils';
+import { doGet, doPost, isErrorResponse, getErrMsg } from '../utils/AjaxUtils';
 import { connect } from 'react-redux';
-import { addTag } from '../actions/actions';
+import { addTag, fetchTags, clearTags, deleteTag } from '../actions/actions';
 import { store } from '../configureStore';
 
 // NOTE: much of the code here comes from Material UI's sample implementation
@@ -55,24 +55,47 @@ class TagBar extends Component {
           return { currentTags: store.getState().manageTags.tags };
         })
       });
-
-      // TODO: fetch tag information from the database if we have a recipe ID
-      let hasData = props.recipeId;
-      this.state.currentTags = [];
     }
 
     state = {
         tagValue: '',
         suggestions: [],
-    };      
+        currentTags: []
+    };
+
+    componentDidMount() {
+      let recipeId = this.props.recipeId;
+      if(recipeId) {
+        this.props.fetchTags(recipeId);
+      }
+    }
+
+    componentWillUnmount() {
+      let recipeId = this.props.recipeId;
+      if(recipeId) {
+        this.props.clearTags();
+      }
+    }
 
     handleDeleteTag = data => () => {
+      let recipeId = this.props.recipeId;
+      if(recipeId) {
+        this.props.deleteTag(data, recipeId)
+        .then(responseJson => {
+          if (isErrorResponse(responseJson)) {
+            console.error('Error deleting recipe tag information from database');
+            console.error(getErrMsg(responseJson));
+          }
+        })
+      }
+      else {
         this.setState(state => {
-            let currentTags = [...state.currentTags];
-            let tagToDeleteIndex = currentTags.indexOf(data);
-            currentTags.splice(tagToDeleteIndex, 1);
-            return { currentTags };
-          });
+          let currentTags = [...state.currentTags];
+          let tagToDeleteIndex = currentTags.indexOf(data);
+          currentTags.splice(tagToDeleteIndex, 1);
+          return { currentTags };
+        });
+      }
     };
 
     handleSuggestionsFetchRequested = ({value}) => {
@@ -138,13 +161,14 @@ class TagBar extends Component {
     updateStateWithSelectedSuggestion = suggestion => {
       // Add to Redux store
       // Because we subscribe to the store, this updates the local state as well
-      this.props.addTag(suggestion);
-
-      this.setState(state => {
-        let newState = state;
-        newState['tagValue'] = '';
-        return newState;
-      });
+      Promise.resolve(this.props.addTag(suggestion, this.props.recipeId))
+      .then(() => {
+        this.setState(state => {
+          let newState = state;
+          newState['tagValue'] = '';
+          return newState;
+        });
+      })
     };
     
     handleAutoSuggestChange = (event, { newValue }) => {
@@ -204,7 +228,11 @@ class TagBar extends Component {
 
 TagBar.propTypes = {
     classes: PropTypes.object.isRequired,
-    addTag: PropTypes.func.isRequired
+    recipeId: PropTypes.string,
+    addTag: PropTypes.func.isRequired,
+    fetchTags: PropTypes.func.isRequired,
+    clearTags: PropTypes.func.isRequired,
+    deleteTag: PropTypes.func.isRequired
 };
 
-export default connect(null, { addTag })(withStyles(styles)(TagBar));
+export default connect(null, { addTag, fetchTags, clearTags, deleteTag })(withStyles(styles)(TagBar));

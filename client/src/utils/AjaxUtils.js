@@ -39,7 +39,9 @@ export function doDelete(url) {
 
 // Return whether the JSON returned by the server represents an error
 export function isErrorResponse(responseJson) {
-    return (responseJson.code && responseJson.message);
+    if(responseJson) {
+        return (responseJson.code && responseJson.message);
+    }
 }
 
 // If this is an error response, return the error message

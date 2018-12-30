@@ -1,6 +1,8 @@
 import {
     ADD_TAG,
-    CLEAR_TAGS
+    CLEAR_TAGS,
+    FETCH_TAGS,
+    DELETE_TAG
 } from '../actions/actionTypes';
 
 const initialState = {
@@ -23,6 +25,16 @@ export function manageTags(state = initialState, action) {
             return (Object.assign({}, state, {
                 tags: []
             }))
+        case FETCH_TAGS: {
+            return Object.assign({}, state, {
+                tags: action.payload.tags
+            })
+        }
+        case DELETE_TAG: {
+            return Object.assign({}, state, {
+                tags: action.payload.tags
+            })
+        }
         default:
             return state;
     }
