@@ -47,16 +47,6 @@ const styles = theme => ({
   });
 
 class TagBar extends Component {
-    constructor(props) {
-      super(props);
-
-      store.subscribe(() => {
-        this.setState(state => {
-          return { currentTags: store.getState().manageTags.tags };
-        })
-      });
-    }
-
     state = {
         tagValue: '',
         suggestions: [],
@@ -64,6 +54,12 @@ class TagBar extends Component {
     };
 
     componentDidMount() {
+      store.subscribe(() => {
+        this.setState(state => {
+          return { currentTags: store.getState().manageTags.tags };
+        })
+      });
+
       let recipeId = this.props.recipeId;
       if(recipeId) {
         this.props.fetchTags(recipeId);
