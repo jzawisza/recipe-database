@@ -159,8 +159,11 @@ class TagBar extends Component {
     };
 
     updateStateWithSelectedSuggestion = suggestion => {
-      // Add to Redux store
-      // Because we subscribe to the store, this updates the local state as well
+      // Add the tag to the Redux store.
+      // Because we subscribe to the store, this updates the local state as well.
+      // Wrap the call in Promise.resolve because this method can return a promise
+      // or a regular object depending on whether we're modifying an existing recipe
+      // or adding tags for a recipe import.
       Promise.resolve(this.props.addTag(suggestion, this.props.recipeId))
       .then(() => {
         this.setState(state => {
