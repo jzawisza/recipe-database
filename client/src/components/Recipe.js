@@ -455,6 +455,7 @@ class Recipe extends Component {
                                     fullWidth
                                     margin="dense"
                                     multiline
+                                    autoFocus={true}
                                     rows={ingredients ? undefined : DEFAULT_ROWS}
                                     disabled={disableEditing}
                                     value={ingredients || ''}
@@ -472,6 +473,7 @@ class Recipe extends Component {
                                     fullWidth
                                     margin="dense"
                                     multiline
+                                    autoFocus={true}
                                     rows={preparation ? undefined : DEFAULT_ROWS}
                                     disabled={disableEditing}
                                     value={preparation || ''}
@@ -485,6 +487,7 @@ class Recipe extends Component {
                                 id="notes"
                                 label="Notes"
                                 multiline
+                                autoFocus={true}
                                 rows={notes ? undefined : DEFAULT_ROWS}
                                 onChange={this.handleChange('notes').bind(this)}
                                 fullWidth
