@@ -3,7 +3,6 @@ import {
     CLEAR_TAGS,
     FETCH_TAGS,
     DELETE_TAG,
-    INITIALIZE_NEW_RECIPE,
     MODIFY_RECIPE,
     CLEAR_RECIPE
 } from './actionTypes';
@@ -120,42 +119,36 @@ function createTagDeletedAction(tagArray, response) {
     }
 }
 
-// Generate a new recipe when first visiting the Add Recipe page
-// that contains empty strings for all non-nullable fields
-export function createNewRecipe() {
-    return {
-        type: INITIALIZE_NEW_RECIPE
-    }
-}
-
 // Upsert new recipe information into the database
 export function modifyRecipe(key, newValue, id) {
     return function(dispatch, getState) {
-        let recipe = {};
+        // Check to see if we have all required fields, and if we do, upsert the recipe information
+        // into the database.
+        // If not, update the local state, but don't persist anything to the database until
+        // we have the required fields.
         let recipeUpdate = {};
         recipeUpdate[key] = newValue;
-        // If we don't have an ID, we haven't created the initial recipe on the server,
-        // so create a new object with all needed fields.
-        // This new object is fetched from the reducer.
-        if(!id) {
-            recipe = Object.assign({}, getState().editRecipe.recipe, recipeUpdate);
+        let { recipe } = getState().editRecipe;
+        let newRecipe = Object.assign({}, recipe, recipeUpdate);
+        if(newRecipe.title && newRecipe.ingredients && newRecipe.preparation) {
+            // We have all required fields: do the update to the database
+            let urlPromise = undefined;
+            // Do a POST for initial creation, and a PATCH for subsequent updates
+            if (id) {
+                urlPromise = doPatch(`recipes/${id}`, recipeUpdate);
+            }
+            else {
+                urlPromise = doPost('recipes', newRecipe);
+            }
+            return urlPromise
+            .then(responseJson => {
+                dispatch(receiveModifyStatus(responseJson));
+            });
         }
         else {
-            recipe = recipeUpdate;
+            // Not all required fields present: just update the local store
+            dispatch(receiveModifyStatus(recipeUpdate));
         }
-
-        let urlPromise = undefined;
-        // Do a POST for initial creation, and a PATCH for subsequent updates
-        if (id) {
-            urlPromise = doPatch(`recipes/${id}`, recipe);
-        }
-        else {
-            urlPromise = doPost('recipes', recipe);
-        }
-        return urlPromise
-        .then(responseJson => {
-            dispatch(receiveModifyStatus(responseJson, recipe));
-        });
     };
 }
 
@@ -167,9 +160,9 @@ export function clearRecipe() {
 }
 
 // Helper function to do pure action creation for recipe modification
-function receiveModifyStatus(responseJson, recipe) {
+function receiveModifyStatus(responseJson) {
     if(isErrorResponse(responseJson)) {
-        return createErrorObject(MODIFY_RECIPE, getErrCode(responseJson), getErrMsg(responseJson), recipe);
+        return createErrorObject(MODIFY_RECIPE, getErrCode(responseJson), getErrMsg(responseJson));
     }
     else {
         return {

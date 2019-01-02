@@ -80,32 +80,34 @@ class RecipeLinks extends Component {
 
     componentDidMount() {
         let recipeId = this.props.recipeId;
-        doGet(`recipe-links/?$or[0][sourceId]=${recipeId}&$or[1][destId]=${recipeId}`)
-        .then(responseJson => {
-            if (isErrorResponse(responseJson)) {
-                console.error('Error retrieving saved recipe information from database');
-                console.error(getErrMsg(responseJson));
-            }
-            else {
-                let linkedRecipes = responseJson.data.map(recipe => {
-                    let newRecipe = (({ id }) => ({ id }))(recipe);
-                    // Because links are bidirectional, either the source or the destination can be
-                    // the recipe we're linking to (as opposed to the current recipe).
-                    // Check both cases so that we construct our array of linked recipes correctly.
-                    if(recipe.sourceId === recipeId) {
-                        newRecipe.recipeId = recipe.destId;
-                        newRecipe.title = recipe.destTitle;
-                    }
-                    else {
-                        newRecipe.recipeId = recipe.sourceId;
-                        newRecipe.title = recipe.sourceTitle;
-                    }
+        if(recipeId) {
+            doGet(`recipe-links/?$or[0][sourceId]=${recipeId}&$or[1][destId]=${recipeId}`)
+            .then(responseJson => {
+                if (isErrorResponse(responseJson)) {
+                    console.error('Error retrieving saved recipe information from database');
+                    console.error(getErrMsg(responseJson));
+                }
+                else {
+                    let linkedRecipes = responseJson.data.map(recipe => {
+                        let newRecipe = (({ id }) => ({ id }))(recipe);
+                        // Because links are bidirectional, either the source or the destination can be
+                        // the recipe we're linking to (as opposed to the current recipe).
+                        // Check both cases so that we construct our array of linked recipes correctly.
+                        if(recipe.sourceId === recipeId) {
+                            newRecipe.recipeId = recipe.destId;
+                            newRecipe.title = recipe.destTitle;
+                        }
+                        else {
+                            newRecipe.recipeId = recipe.sourceId;
+                            newRecipe.title = recipe.sourceTitle;
+                        }
 
-                    return newRecipe;
-                });
-                this.setState( { linkedRecipes } );
-            }
-        })
+                        return newRecipe;
+                    });
+                    this.setState( { linkedRecipes } );
+                }
+            })
+        }
     }
     
 
@@ -233,7 +235,7 @@ class RecipeLinks extends Component {
 
 RecipeLinks.propTypes = {
     classes: PropTypes.object.isRequired,
-    recipeId: PropTypes.string.isRequired,
+    recipeId: PropTypes.string,
     editMode: PropTypes.bool.isRequired
   };
   

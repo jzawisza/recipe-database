@@ -15,7 +15,10 @@ class AddRecipe extends Component {
                     Fill out this form to manually add a recipe the database.
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    You do not need to explicitly save: your results will be saved as you enter them.
+                    You must fill out the title, ingredients, and preparation fields before you do anything else.
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                    After you fill out those fields, the recipe will be saved to the database, and you can modify the other fields on this page.
                 </Typography>
 
                 <Recipe newRecipe={true}/>

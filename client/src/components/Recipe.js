@@ -26,7 +26,7 @@ import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
 import { MAIN_TITLE, DEFAULT_USER_ID } from '../App';
 import { doGet, isErrorResponse, getErrMsg, doPost, doPatch } from '../utils/AjaxUtils';
-import { createNewRecipe, modifyRecipe, clearRecipe } from '../actions/actions';
+import { modifyRecipe, clearRecipe } from '../actions/actions';
 
 const REQUIRED_FIELD_LABEL = "This field is required."
 
@@ -84,7 +84,8 @@ class Recipe extends Component {
         editMode: false,
         loading: true,
         savedRecipeIsFavorite: false,
-        savedRecipeIsMealPlanner: false
+        savedRecipeIsMealPlanner: false,
+        hasRequiredFields: false
     };
 
     componentDidMount() {
@@ -108,6 +109,8 @@ class Recipe extends Component {
                     newState.loading = false;
                     return newState;
                 });
+
+                this.setHasRequiredFields();
             });
 
             // Also get saved recipe information to see if this is a Favorite
@@ -135,7 +138,6 @@ class Recipe extends Component {
             });
         }
         else {
-            this.props.createNewRecipe();
             this.setState({
                 loading: false
             })
@@ -144,6 +146,19 @@ class Recipe extends Component {
 
     componentWillUnmount() {
         this.props.clearRecipe();
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        this.setHasRequiredFields(prevState);
+    }
+
+    setHasRequiredFields(prevState = {}) {
+        // If the title, ingredients, and preparation fields all have values, we have all the required fields
+        let { title, ingredients, preparation } = this.state;
+        if(prevState.title !== title || prevState.ingredients !== ingredients || prevState.preparation !== preparation) {
+            let hasRequiredFields = Boolean(title && ingredients && preparation);
+            this.setState({ hasRequiredFields });
+        }
     }
 
     handleChange = name => event => {
@@ -254,6 +269,9 @@ class Recipe extends Component {
         // id = some value, newRecipe = true  - Add Recipe tab, recipe created on server
         // id = some value, newRecipe = false - View Recipe tab
         const { classes, id, newRecipe } = this.props;
+        const { hasRequiredFields, editMode, loadingErrMsg, loading, savedRecipeIsFavorite, savedRecipeIsMealPlanner,
+                saveSnackbarVisible, title, ingredients, preparation, source, serves, caloriesPerServing, notes }
+                = this.state;
 
         
         // Enable editing if this is a new recipe
@@ -264,20 +282,20 @@ class Recipe extends Component {
         // If this is an existing recipe, editing is disabled by default,
         // and enabled only if the user has explicitly requested edit mode
         if (!newRecipe) {
-            disableEditing = !this.state.editMode;
-            titleStr = `${this.state.title} - ${MAIN_TITLE}`;
+            disableEditing = !editMode;
+            titleStr = `${title} - ${MAIN_TITLE}`;
         }
 
-        let showTitleError = !this.state.title && !disableEditing;
+        let showTitleError = !title && !disableEditing;
         let titleErrorText = showTitleError ? REQUIRED_FIELD_LABEL : "";
-        let showIngredientsError = !this.state.ingredients && !disableEditing;
+        let showIngredientsError = !ingredients && !disableEditing;
         let ingredientsErrorText = showIngredientsError ? REQUIRED_FIELD_LABEL : "";
-        let showPreparationError = !this.state.preparation && !disableEditing;
+        let showPreparationError = !preparation && !disableEditing;
         let preparationErrorText = showPreparationError ? REQUIRED_FIELD_LABEL : "";
 
         // Display an error message if we tried to load data
         // from the server and failed
-        if(this.state.loadingErrMsg) {
+        if(loadingErrMsg) {
             return (
                 <div className={classes.root}>
                     {titleStr &&
@@ -290,14 +308,14 @@ class Recipe extends Component {
                         variant='body1'
                         gutterBottom
                     >
-                        Error loading recipe: {this.state.loadingErrMsg}
+                        Error loading recipe: {loadingErrMsg}
                     </Typography>
                 </div>
             );
         }
 
         // Show spinner while we're loading data
-        if(this.state.loading) {
+        if(loading) {
             return (
                 <div className={classes.root}>
                 {titleStr &&
@@ -333,7 +351,7 @@ class Recipe extends Component {
                     <Grid container spacing={0} wrap="wrap">
                         {!newRecipe &&
                             <Grid item xs={12}>
-                                <Tooltip title={this.state.editMode ? 'Finish editing recipe' : 'Edit recipe'}>
+                                <Tooltip title={editMode ? 'Finish editing recipe' : 'Edit recipe'}>
                                     <IconButton
                                         key='editMode'
                                         color='primary'
@@ -341,10 +359,10 @@ class Recipe extends Component {
                                         className={classes.topIcons}
                                         onClick={this.toggle('editMode').bind(this)}
                                     >
-                                        {this.state.editMode ? <DoneIcon /> : <EditIcon />}
+                                        {editMode ? <DoneIcon /> : <EditIcon />}
                                     </IconButton>
                                 </Tooltip>
-                                <Tooltip title={this.state.savedRecipeIsFavorite ? 'Remove from Favorites' : 'Add to Favorites'}>
+                                <Tooltip title={savedRecipeIsFavorite ? 'Remove from Favorites' : 'Add to Favorites'}>
                                     <IconButton
                                         key='isFavorite'
                                         color='primary'
@@ -352,10 +370,10 @@ class Recipe extends Component {
                                         className={classes.topIcons}
                                         onClick={this.toggleSavedRecipeState(true).bind(this)}
                                     >
-                                        {this.state.savedRecipeIsFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                        {savedRecipeIsFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                                     </IconButton>
                                 </Tooltip>
-                                <Tooltip title={this.state.savedRecipeIsMealPlanner ? 'Remove from Meal Planner' : 'Add to Meal Planner'}>
+                                <Tooltip title={savedRecipeIsMealPlanner ? 'Remove from Meal Planner' : 'Add to Meal Planner'}>
                                     <IconButton
                                         key='isMealPlanner'
                                         color='primary'
@@ -363,7 +381,7 @@ class Recipe extends Component {
                                         className={classes.topIcons}
                                         onClick={this.toggleSavedRecipeState(false).bind(this)}
                                     >
-                                        {this.state.savedRecipeIsMealPlanner ? <RemoveShoppingCartIcon /> : <AddShoppingCartIcon />}
+                                        {savedRecipeIsMealPlanner ? <RemoveShoppingCartIcon /> : <AddShoppingCartIcon />}
                                     </IconButton>
                                 </Tooltip>
                             </Grid>
@@ -377,7 +395,7 @@ class Recipe extends Component {
                                     fullWidth
                                     margin="dense"
                                     disabled={disableEditing}
-                                    value={this.state.title || ''}
+                                    value={title || ''}
                                 />
                                 <FormHelperText id="title-error-text">{titleErrorText}</FormHelperText>
                             </FormControl>
@@ -389,8 +407,8 @@ class Recipe extends Component {
                                 onChange={this.handleChange('source').bind(this)}
                                 fullWidth
                                 margin="normal"
-                                disabled={disableEditing}
-                                value={this.state.source || ''}
+                                disabled={disableEditing || !hasRequiredFields}
+                                value={source || ''}
                             />
                         </Grid>
 
@@ -401,8 +419,8 @@ class Recipe extends Component {
                                 type="number"
                                 onChange={this.handleChange('serves').bind(this)}
                                 margin="normal"
-                                disabled={disableEditing}
-                                value={this.state.serves || ''}
+                                disabled={disableEditing || !hasRequiredFields}
+                                value={serves || ''}
                             />
                         </Grid>
 
@@ -413,19 +431,19 @@ class Recipe extends Component {
                                 type="number"
                                 onChange={this.handleChange('calories').bind(this)}
                                 margin="normal"
-                                disabled={disableEditing}
-                                value={this.state.caloriesPerServing || ''}
+                                disabled={disableEditing || !hasRequiredFields}
+                                value={caloriesPerServing || ''}
                             />
                         </Grid>
 
                         <Grid item xs={12} className={classes.tagBarContainer}>
                             <InputLabel>Tags</InputLabel>
-                            <TagBar recipeId={id} editMode={!disableEditing} />
+                            <TagBar recipeId={id} editMode={!disableEditing && hasRequiredFields} />
                         </Grid>
 
                         <Grid item xs={12} className={classes.recipeLinksContainer}>
                             <InputLabel>Related Recipes</InputLabel>
-                            <RecipeLinks recipeId={id} editMode={!disableEditing} />
+                            <RecipeLinks recipeId={id} editMode={!disableEditing && hasRequiredFields} />
                         </Grid>
 
                         <Grid item xs={12}>
@@ -437,9 +455,9 @@ class Recipe extends Component {
                                     fullWidth
                                     margin="dense"
                                     multiline
-                                    rows={this.state.ingredients ? undefined : DEFAULT_ROWS}
+                                    rows={ingredients ? undefined : DEFAULT_ROWS}
                                     disabled={disableEditing}
-                                    value={this.state.ingredients || ''}
+                                    value={ingredients || ''}
                                 />
                                 <FormHelperText id="ingredients-error-text">{ingredientsErrorText}</FormHelperText>
                             </FormControl>
@@ -454,9 +472,9 @@ class Recipe extends Component {
                                     fullWidth
                                     margin="dense"
                                     multiline
-                                    rows={this.state.preparation ? undefined : DEFAULT_ROWS}
+                                    rows={preparation ? undefined : DEFAULT_ROWS}
                                     disabled={disableEditing}
-                                    value={this.state.preparation || ''}
+                                    value={preparation || ''}
                                 />
                                 <FormHelperText id="preparation-error-text">{preparationErrorText}</FormHelperText>
                             </FormControl>
@@ -467,12 +485,12 @@ class Recipe extends Component {
                                 id="notes"
                                 label="Notes"
                                 multiline
-                                rows={this.state.notes ? undefined : DEFAULT_ROWS}
+                                rows={notes ? undefined : DEFAULT_ROWS}
                                 onChange={this.handleChange('notes').bind(this)}
                                 fullWidth
                                 margin="normal"
-                                disabled={disableEditing}
-                                value={this.state.notes || ''}
+                                disabled={disableEditing || !hasRequiredFields}
+                                value={notes || ''}
                             />
                         </Grid>
                     </Grid>
@@ -484,7 +502,7 @@ class Recipe extends Component {
                         vertical: 'bottom',
                         horizontal: 'right',
                     }}
-                    open={this.state.saveSnackbarVisible}
+                    open={saveSnackbarVisible}
                     autoHideDuration={2000}
                     onClose={this.handleCloseSaveSnackbar}
                     TransitionComponent={Fade}
@@ -501,7 +519,6 @@ class Recipe extends Component {
 
 Recipe.propTypes = {
     classes: PropTypes.object.isRequired,
-    createNewRecipe: PropTypes.func.isRequired,
     modifyRecipe: PropTypes.func.isRequired,
     clearRecipe: PropTypes.func.isRequired,
     id: PropTypes.string,
@@ -519,4 +536,4 @@ const mapStateToProps = (state, ownProps) => {
     }
 }
 
-export default connect(mapStateToProps, { createNewRecipe, modifyRecipe, clearRecipe })(withStyles(styles, { withTheme: true })(Recipe));
+export default connect(mapStateToProps, { modifyRecipe, clearRecipe })(withStyles(styles, { withTheme: true })(Recipe));
