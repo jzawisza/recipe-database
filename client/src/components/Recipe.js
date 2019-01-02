@@ -429,7 +429,7 @@ class Recipe extends Component {
                                 id="calories"
                                 label="Calories per Serving"
                                 type="number"
-                                onChange={this.handleChange('calories').bind(this)}
+                                onChange={this.handleChange('caloriesPerServing').bind(this)}
                                 margin="normal"
                                 disabled={disableEditing || !hasRequiredFields}
                                 value={caloriesPerServing || ''}
