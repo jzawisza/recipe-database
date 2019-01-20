@@ -8,9 +8,10 @@ import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import SharedTableHead from './SharedTableHead';
 import SharedTableToolbar from './SharedTableToolbar';
-import { getSorting } from '../../utils/SortUtils';
+import { buildFetchRecipeParamJson, ORDER_ASC, ORDER_DESC } from '../../actions/actionHelpers';
 
 // NOTE: this code is adapted from the Material UI table samples at
 // https://material-ui.com/demos/tables/
@@ -23,36 +24,32 @@ const styles = theme => ({
 });
   
 class SortablePaginatedTable extends Component {
-    constructor(props) {
-        super(props);
+    state = {
+      selected: [],
+      loading: false
+    };
 
-        this.state = {
-            order: props.order || 'asc',
-            orderBy: props.orderBy,
-            selected: [],
-            page: 0,
-            rowsPerPage: props.rowsPerPage || 10,
-            data: props.data
-        };
-    }
-  
     handleRequestSort = (event, property) => {
       const orderBy = property;
-      let order = 'desc';
-  
-      if (this.state.orderBy === property && this.state.order === 'desc') {
-        order = 'asc';
+      // Default to descending sort
+      let order = ORDER_DESC;
+      if (this.props.orderBy === orderBy) {
+        // If we're clicking on a column we already clicked on before, toggle
+        // the sort order
+        order = (this.props.order === ORDER_DESC) ? ORDER_ASC : ORDER_DESC;
       }
   
-      this.setState({ order, orderBy });
+      let fetchParamJson = buildFetchRecipeParamJson(order, orderBy, null, null);
+      this.updateDataRows(fetchParamJson);
     };
 
     handleSelectAllClick = event => {
       if (event.target.checked) {
-        this.setState(state => ({ selected: state.data.map(n => n.id) }));
-        return;
+        this.setState(state => ({ selected: this.props.dataRows.map(n => n.id) }));
       }
-      this.setState({ selected: [] });
+      else {
+        this.setState({ selected: [] });
+      }
     };
   
     handleClick = (event, id) => {
@@ -76,20 +73,37 @@ class SortablePaginatedTable extends Component {
       this.setState({ selected: newSelected });
     };
   
-    handleChangePage = (event, page) => {
-      this.setState({ page });
+    handleChangePage = (event, currentPage) => {
+      let fetchParamJson = buildFetchRecipeParamJson(null, null, null, currentPage);
+      this.updateDataRows(fetchParamJson);
     };
   
-    handleChangeRowsPerPage = event => {
-      this.setState({ rowsPerPage: event.target.value });
+    handleChangeRowsPerPage = (event) => {
+      const rowsPerPage = event.target.value;
+      // Start at page 0 if we change the number of rows per page
+      let fetchParamJson = buildFetchRecipeParamJson(null, null, rowsPerPage, 0);
+      this.updateDataRows(fetchParamJson);
     };
+
+    updateDataRows = fetchParamJson => {
+      this.setState(state => {
+        return { loading: true };
+      });
+      this.props.dataProviderFunc(fetchParamJson)
+      .then(() => {
+        // Clear the selected rows if we change what's being displayed
+        this.setState(state => {
+          return { selected: [], loading: false };
+        });
+      });
+    }
   
     isSelected = id => this.state.selected.indexOf(id) !== -1;
   
     render() {
-      const { classes, title, removeLabel, removeIcon, headerRows, rowRenderFunc } = this.props;
-      const { data, order, orderBy, selected, rowsPerPage, page } = this.state;
-      const emptyRows = rowsPerPage - Math.min(rowsPerPage, data.length - page * rowsPerPage);
+      const { classes, title, removeLabel, removeIcon, headerRows, dataRows, rowRenderFunc, order, orderBy, currentPage, rowsPerPage, totalRows } = this.props;
+      const { selected, loading } = this.state;
+      const emptyRows = rowsPerPage - dataRows.length;
   
       return (
         <Paper className={classes.root}>
@@ -100,51 +114,56 @@ class SortablePaginatedTable extends Component {
             removeIcon={removeIcon}
           />
           <div className={classes.tableWrapper}>
-            <Table className={classes.table} aria-labelledby="tableTitle">
-              <SharedTableHead
-                headerRows={headerRows}
-                numSelected={selected.length}
-                order={order}
-                orderBy={orderBy}
-                onRequestSort={this.handleRequestSort}
-                rowCount={data.length}
-                onSelectAllClick={this.handleSelectAllClick}
+            {loading
+              ?
+              <CircularProgress
+                size={200}
               />
-              <TableBody>
-                {data
-                  .sort(getSorting(order, orderBy))
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map(n => {
-                    const isSelected = this.isSelected(n.id);
-                    return (
-                      <TableRow
-                        hover
-                        onClick={event => this.handleClick(event, n.id)}
-                        role="checkbox"
-                        aria-checked={isSelected}
-                        tabIndex={-1}
-                        key={n.id}
-                        selected={isSelected}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={isSelected} />
-                        </TableCell>
-                        {rowRenderFunc(n)}
-                      </TableRow>
-                    )})}
-                {emptyRows > 0 && (
-                  <TableRow style={{ height: 49 * emptyRows }}>
-                    <TableCell colSpan={6} />
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+              :
+              <Table className={classes.table} aria-labelledby="tableTitle">
+                <SharedTableHead
+                  headerRows={headerRows}
+                  numSelected={selected.length}
+                  order={order === ORDER_ASC ? 'asc' : 'desc'}
+                  orderBy={orderBy}
+                  onRequestSort={this.handleRequestSort}
+                  rowCount={dataRows.length}
+                  onSelectAllClick={this.handleSelectAllClick}
+                />
+                <TableBody>
+                  {dataRows
+                    .map(n => {
+                      const isSelected = this.isSelected(n.id);
+                      return (
+                        <TableRow
+                          hover
+                          onClick={event => this.handleClick(event, n.id)}
+                          role="checkbox"
+                          aria-checked={isSelected}
+                          tabIndex={-1}
+                          key={n.id}
+                          selected={isSelected}
+                        >
+                          <TableCell padding="checkbox">
+                            <Checkbox checked={isSelected} />
+                          </TableCell>
+                          {rowRenderFunc(n)}
+                        </TableRow>
+                      )})}
+                  {emptyRows > 0 && (
+                    <TableRow style={{ height: 49 * emptyRows }}>
+                      <TableCell colSpan={6} />
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            }
           </div>
           <TablePagination
             component="div"
-            count={data.length}
+            count={totalRows}
             rowsPerPage={rowsPerPage}
-            page={page}
+            page={currentPage}
             backIconButtonProps={{
               'aria-label': 'Previous Page',
             }}
@@ -161,12 +180,15 @@ class SortablePaginatedTable extends Component {
   
   SortablePaginatedTable.propTypes = {
     classes: PropTypes.object.isRequired,
-    order: PropTypes.string,
-    orderBy: PropTypes.string.isRequired,
-    rowsPerPage: PropTypes.number,
-    data: PropTypes.array.isRequired,
     headerRows: PropTypes.array.isRequired,
+    dataRows: PropTypes.array.isRequired,
+    dataProviderFunc: PropTypes.func.isRequired,
     rowRenderFunc: PropTypes.func.isRequired,
+    order: PropTypes.number.isRequired,
+    orderBy: PropTypes.string.isRequired,
+    rowsPerPage: PropTypes.number.isRequired,
+    currentPage: PropTypes.number.isRequired,
+    totalRows: PropTypes.number.isRequired,
     title: PropTypes.string.isRequired,
     removeLabel: PropTypes.string.isRequired,
     removeIcon: PropTypes.element.isRequired,

@@ -33,13 +33,17 @@ class SharedTableHead extends Component {
                         padding={row.disablePadding ? 'none' : 'default'}
                         sortDirection={orderBy === row.id ? order : false}
                     >
-                        <TableSortLabel
-                            active={orderBy === row.id}
-                            direction={order}
-                            onClick={this.createSortHandler(row.id)}
-                        >
-                            {row.label}
-                        </TableSortLabel>
+                        {row.sortable
+                        ?
+                            <TableSortLabel
+                                active={orderBy === row.id}
+                                direction={order}
+                                onClick={this.createSortHandler(row.id)}
+                            >
+                                {row.label}
+                            </TableSortLabel>
+                        :
+                        row.label}
                     </TableCell>
                     );
                 }, this)}

@@ -6,19 +6,7 @@ import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
 import SortablePaginatedTable from './SortablePaginatedTable';
 
 const HEADER_ROWS = [
-    { id: 'title', numeric: false, disablePadding: true, label: 'Title' }
-];
-
-const MEAL_PLANNER_DATA = [
-    { id: 1, title: "Beef Bolognese Ravioli" },
-    { id: 2, title: "Tahini and Pepita Salad" },
-    { id: 3, title: "Green Beans" }
-];
-
-const FAVORITES_DATA = [
-    { id: 1, title: "Applesauce" },
-    { id: 2, title: "Oven-Roasted Green Beans" },
-    { id: 3, title: "Brussels Sprouts" }
+    { id: 'title', numeric: false, disablePadding: true, label: 'Title', sortable: true }
 ];
   
 class ReviewTable extends Component {
@@ -34,20 +22,33 @@ class ReviewTable extends Component {
         );
     };
 
+    getDataHelper(sortField, sortAsc, rowsToShow, skipRows, type) {
+        return {};
+    }
+
+    getFavorites(sortField = 'title', sortAsc = true, rowsToShow = 10, skipRows = 0) {
+        return this.getDataHelper(sortField, sortAsc, rowsToShow, skipRows, 'FAVORITES');
+    }
+
+    getMealPlannerRecipes(sortField = 'title', sortAsc = true, rowsToShow = 10, skipRows = 0) {
+        return this.getDataHelper(sortField, sortAsc, rowsToShow, skipRows, 'MEAL_PLANNER');
+    }
+
     render() {
         const { isMealPlanner } = this.props;
 
         return (
             <SortablePaginatedTable
-            order='asc'
-            orderBy='title'
-            rowsPerPage={10}
-            data={isMealPlanner ? MEAL_PLANNER_DATA : FAVORITES_DATA}
-            headerRows={HEADER_ROWS}
-            rowRenderFunc={this.renderRow}
-            title={isMealPlanner ? 'Meal Planner' : 'Favorites'}
-            removeLabel={isMealPlanner ? 'Remove from Meal Planner' : 'Remove from Favorites'}
-            removeIcon={isMealPlanner ? <RemoveShoppingCartIcon /> : <FavoriteBorderIcon />}
+                headerRows={HEADER_ROWS}
+                order={1}
+                orderBy='title'
+                rowsPerPage={10}
+                currentPage={0}
+                dataFunc={isMealPlanner ? this.getMealPlannerRecipes : this.getFavorites}
+                rowRenderFunc={this.renderRow}
+                title={isMealPlanner ? 'Meal Planner' : 'Favorites'}
+                removeLabel={isMealPlanner ? 'Remove from Meal Planner' : 'Remove from Favorites'}
+                removeIcon={isMealPlanner ? <RemoveShoppingCartIcon /> : <FavoriteBorderIcon />}
             />
         );
     }

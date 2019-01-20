@@ -4,3 +4,6 @@ export const FETCH_TAGS = 'FETCH_TAGS';
 export const DELETE_TAG = 'DELETE_TAG';
 export const MODIFY_RECIPE = 'MODIFY_RECIPE';
 export const CLEAR_RECIPE = 'CLEAR_RECIPE';
+export const FETCH_RECIPES = 'FETCH_RECIPES';
+export const FETCH_FAVORITES = 'FETCH_FAVORITES';
+export const FETCH_MEAL_PLANNER = 'FETCH_MEAL_PLANNER';

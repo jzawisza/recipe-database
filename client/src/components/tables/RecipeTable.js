@@ -1,75 +1,66 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import Moment from 'react-moment';
 import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
 import TableCell from '@material-ui/core/TableCell';
 import DeleteIcon from '@material-ui/icons/Delete';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import SortablePaginatedTable from './SortablePaginatedTable';
-import { getSorting } from '../../utils/SortUtils';
+import { fetchRecipes } from '../../actions/actions';
+import { ORDER_ASC } from '../../actions/actionHelpers';
 
 const HEADER_ROWS = [
-    { id: 'title', numeric: false, disablePadding: true, label: 'Title' },
-    { id: 'source', numeric: false, disablePadding: false, label: 'Source' },
-    { id: 'serves', numeric: true, disablePadding: false, label: 'Serves' },
-    { id: 'tags', numeric: false, disablePadding: false, label: 'Tags' },
-    { id: 'modified_time', numeric: false, disablePadding: false, label: 'Last Modified' },
+    { id: 'title', numeric: false, disablePadding: true, label: 'Title', sortable: true },
+    { id: 'source', numeric: false, disablePadding: false, label: 'Source', sortable: true },
+    { id: 'serves', numeric: true, disablePadding: false, label: 'Serves', sortable: true },
+    { id: 'tags', numeric: false, disablePadding: false, label: 'Tags', sortable: false },
+    { id: 'modified_time', numeric: false, disablePadding: false, label: 'Last Modified', sortable: true },
 ];
-          
-const DATA = [
-  {
-    "id": "1",
-    "source": "Cooking Light, August 2018",
-    "title": "Thai Peach Punch",
-    "serves": 4,
-    "data": '{ "tags": [ { "id": 2, "name": "Drink" }, { "id": 5, "name": "Summer" } ]}',
-    "modified_time": "2018-08-31T00:05:50.162Z"
-  },
-  {
-    "id": "2",
-    "source": "Cooking Light, July 2018",
-    "title": "Chicken With Honey-Bourbon Glaze",
-    "serves": 6,
-    "data": '{ "tags": [ { "id": 3, "name": "Chicken" } ]}',
-    "modified_time": "2018-08-29T19:14:50.162Z"
-  },
-  {
-    "id": "3",
-    "source": "New York Times",
-    "title": "Recipe With A Very Long Title That Will Test Word Wrapping In The Recipe Table",
-    "serves": 4,
-    "data": '{ "tags": []}',
-    "modified_time": "2018-08-15T14:34:50.162Z"
-  },
-  {
-    "id": "4",
-    "source": "Cooking Light, March 2018",
-    "title": "Matzoh Brie",
-    "serves": 8,
-    "data": '{ "tags": [ { "id": 12, "name": "Passover" } ]}',
-    "modified_time": "2018-04-04T07:26:50.162Z"
-  },
-  {
-    "id": "5",
-    "source": "Bon Appetit, July 2018",
-    "title": "Tahini-Ginger Ice Cream",
-    "serves": 12,
-    "data": '{ "tags": [ { "id": 7, "name": "Dessert" }, { "id": 5, "name": "Summer" }, { "id": 17, "name": "Middle Eastern" }, { "id": 21, "name": "Fusion" } ]}',
-    "modified_time": "2018-07-15T15:43:50.162Z"
-  },
-  {
-    "id": "6",
-    "source": "Cooking Light, February 2017",
-    "title": "Grilled Cheese Sandwich",
-    "serves": 1,
-    "data": '{ "tags": [ { "id": 9, "name": "Cheese" } ]}',
-    "modified_time": "2017-03-11T23:53:50.162Z"
-  },
-];
-  
+
+const INITIAL_ORDER = ORDER_ASC;
+const INITIAL_ORDER_BY = 'title';
+const INITIAL_ROWS_PER_PAGE = 10;
+const INITIAL_PAGE = 0;
+const INITIAL_FETCH_PARAMS_JSON = {
+  order: INITIAL_ORDER,
+  orderBy: INITIAL_ORDER_BY,
+  rowsPerPage: INITIAL_ROWS_PER_PAGE,
+  currentPage: INITIAL_PAGE
+}
+            
 class RecipeTable extends Component {
-  // Take tag data from JSON payload and convert it to alphabetized comma-delimited string
+    state = {
+      loading: true
+    };
+
+    componentDidMount() {
+      // Load data from Redux store
+      this.props.fetchRecipes(INITIAL_FETCH_PARAMS_JSON)
+      .then(() => {
+        this.setState({
+          loading: false
+        })
+      });
+    }
+
+    // Sort tags alphabetically by name
+    tagSortFunc(a, b) {
+      if(b.name < a.name) {
+        return 1;
+      }
+      else if(b.name > a.name) {
+        return -1;
+      }
+      else {
+        return 0;
+      }
+    }
+
+    // Take tag data from JSON payload and convert it to alphabetized comma-delimited string
     processTags = data => {
       let tagStr = '';
-      let sortedTags = data.tags.sort(getSorting('asc', 'name'));
+      let sortedTags = data.tags.sort(this.tagSortFunc);
       sortedTags.forEach(function(tagInfo) {
         tagStr += tagInfo.name + ', ';
       });
@@ -91,7 +82,7 @@ class RecipeTable extends Component {
           </TableCell>
           <TableCell>{row.source}</TableCell>
           <TableCell numeric>{row.serves}</TableCell>
-          <TableCell>{this.processTags(JSON.parse(row.data))}</TableCell>
+          <TableCell>{this.processTags(row.data)}</TableCell>
           <TableCell>
           <Moment format="YYYY-MM-DD h:mm A">
             {row.modified_time}
@@ -102,14 +93,26 @@ class RecipeTable extends Component {
     };
 
     render() {
+      const { order, orderBy, rowsPerPage, currentPage, totalRows } = this.props;
+
+      if(this.state.loading) {
+        return (
+          <CircularProgress
+            size={200}
+          />
+        );
+      }
       return (
         <SortablePaginatedTable
-          order='asc'
-          orderBy='title'
-          rowsPerPage={10}
-          data={DATA}
           headerRows={HEADER_ROWS}
+          dataRows={this.props.dataRows}
+          dataProviderFunc={this.props.fetchRecipes}
           rowRenderFunc={this.renderRecipeRow}
+          order={order}
+          orderBy={orderBy}
+          rowsPerPage={rowsPerPage}
+          currentPage={currentPage}
+          totalRows={totalRows}
           title='Recipes'
           removeLabel='Delete'
           removeIcon={<DeleteIcon />}
@@ -117,5 +120,20 @@ class RecipeTable extends Component {
       );
     }
 }
+
+RecipeTable.propTypes = {
+  fetchRecipes: PropTypes.func.isRequired,
+  dataRows: PropTypes.array.isRequired,
+  order: PropTypes.number.isRequired,
+  orderBy: PropTypes.string.isRequired,
+  rowsPerPage: PropTypes.number.isRequired,
+  currentPage: PropTypes.number.isRequired,
+  totalRows: PropTypes.number.isRequired
+};
+
+const mapStateToProps = (state) => {
+  const { data, order, orderBy, rowsPerPage, currentPage, totalRows } = state.fetchRecipes;
+  return { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows: data };
+}
   
-export default RecipeTable;
+export default (connect(mapStateToProps, { fetchRecipes }))(RecipeTable);

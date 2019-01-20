@@ -4,9 +4,11 @@ import {
     FETCH_TAGS,
     DELETE_TAG,
     MODIFY_RECIPE,
-    CLEAR_RECIPE
+    CLEAR_RECIPE,
+    FETCH_RECIPES
 } from './actionTypes';
 import { doPost, doPatch, isErrorResponse, getErrMsg, getErrCode, doGet } from '../utils/AjaxUtils';
+import qs from 'qs';
 
 // Helper function to create an error object
 function createErrorObject(type, status, errMsg, otherProps = {}) {
@@ -170,4 +172,52 @@ function receiveModifyStatus(responseJson) {
             payload: { recipe: responseJson }
         }
     }
+}
+
+export function fetchRecipes(fetchParamJson) {
+    let { order, orderBy, rowsPerPage, currentPage } = fetchParamJson;
+
+    return function(dispatch, getState) {
+        let state = getState().fetchRecipes;
+        // Create a new object that combines the requested changes with the previous state
+        const paramsFromState = (({ order, orderBy, rowsPerPage, currentPage }) => ({ order, orderBy, rowsPerPage, currentPage } ))(state);
+        let newFetchParamJson = Object.assign(paramsFromState, fetchParamJson);
+
+        // If we have results and the method parameters are unchanged from the previous call to this function,
+        // return the stored results
+        if(state.data.length > 0 && state.order === order && state.orderBy === orderBy && state.rowsPerPage === rowsPerPage && state.currentPage === currentPage) {
+            dispatch(createFetchAction(state.data, state.data.length, newFetchParamJson));
+        }
+        // Otherwise, reload the data from the server
+        else {
+            let fields = ['id', 'title', 'source', 'serves', 'data', 'modified_time'];
+            let url = generateFetchUrl('recipes', fields, newFetchParamJson);
+            return(doGet(url).then(responseJson => {
+                dispatch(createFetchAction(responseJson.data, responseJson.total, newFetchParamJson));
+                })
+            );    
+        }
+    }
+}
+
+function createFetchAction(data, totalRows, fetchParamJson) {
+    let payloadValue = Object.assign({ data, totalRows }, fetchParamJson);
+    return {
+        type: FETCH_RECIPES,
+        payload: payloadValue
+    }
+}
+
+function generateFetchUrl(table, fields, fetchParamJson) {
+    // https://github.com/ljharb/qs
+    let { order, orderBy, rowsPerPage, currentPage } = fetchParamJson;
+    let sortObj = {};
+    sortObj[orderBy] = order;
+    let obj = {
+        '$select': fields,
+        '$sort': sortObj,
+        '$limit': rowsPerPage,
+        '$skip': currentPage * rowsPerPage
+    };
+    return `${table}?${qs.stringify(obj)}`;
 }

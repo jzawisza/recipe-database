@@ -3,7 +3,7 @@ const DataTypes = Sequelize.DataTypes;
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const userFavorites = sequelizeClient.define('saved_recipes', {
+  const savedRecipes = sequelizeClient.define('saved_recipes', {
     id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
     userId: {
       type: DataTypes.BIGINT,
@@ -38,15 +38,15 @@ module.exports = function (app) {
 
     classMethods: {
       associate(models) {
-        userFavorites.userId.associate(models.users);
-        userFavorites.recipeId.associate(models.recipes);
+        savedRecipes.userId.associate(models.users);
+        savedRecipes.recipeId.associate(models.recipes);
       }
     }
   });
 
   // eslint-disable-next-line no-unused-vars
-  userFavorites.associate = function (models) {
+  savedRecipes.associate = function (models) {
   };
 
-  return userFavorites;
+  return savedRecipes;
 };
