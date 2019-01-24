@@ -1,12 +1,14 @@
 import { combineReducers } from 'redux';
 import { manageTags } from './tags';
 import { editRecipe } from './editRecipe';
-import { fetchRecipes } from './fetchRecipes';
+import { fetchRecipes, fetchFavorites, fetchMealPlannerRecipes } from './fetchRecipes';
 
 const rootReducer = combineReducers({
     manageTags,
     editRecipe,
-    fetchRecipes
+    fetchRecipes,
+    fetchFavorites,
+    fetchMealPlannerRecipes
 });
 
 export default rootReducer;

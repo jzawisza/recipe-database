@@ -24,6 +24,10 @@ export const MAIN_TITLE = 'Recipe Database 2.0';
 // TODO: add multi-user support
 export const DEFAULT_USER_ID = 0;
 
+// Saved recipes constants
+export const FAVORITE_TYPE_STR = 'FAVORITES';
+export const MEAL_PLANNER_TYPE_STR = 'MEAL_PLANNER';
+
 const styles = theme => ({
   root: {
     backgroundColor: theme.palette.background.paper

@@ -24,7 +24,7 @@ import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
-import { MAIN_TITLE, DEFAULT_USER_ID } from '../App';
+import { MAIN_TITLE, DEFAULT_USER_ID, FAVORITE_TYPE_STR, MEAL_PLANNER_TYPE_STR } from '../App';
 import { doGet, isErrorResponse, getErrMsg, doPost, doPatch } from '../utils/AjaxUtils';
 import { modifyRecipe, clearRecipe } from '../actions/actions';
 
@@ -32,9 +32,6 @@ const REQUIRED_FIELD_LABEL = "This field is required."
 
 // Default number of rows for text areas that contain no text
 const DEFAULT_ROWS = 8;
-
-const FAVORITE_TYPE_STR = 'FAVORITES';
-const MEAL_PLANNER_TYPE_STR = 'MEAL_PLANNER';
 
 const styles = theme => ({
     root: {

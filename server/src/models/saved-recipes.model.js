@@ -46,6 +46,7 @@ module.exports = function (app) {
 
   // eslint-disable-next-line no-unused-vars
   savedRecipes.associate = function (models) {
+    savedRecipes.belongsTo(models.recipes, { as: 'recipe', foreignKey: 'recipeId'});
   };
 
   return savedRecipes;

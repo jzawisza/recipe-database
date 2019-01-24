@@ -27,6 +27,7 @@ module.exports = function (app) {
 
   // eslint-disable-next-line no-unused-vars
   recipes.associate = function (models) {
+    recipes.hasMany(models.saved_recipes, {as: 'savedRecipe', foreignKey: 'recipeId'});
   };
 
   return recipes;

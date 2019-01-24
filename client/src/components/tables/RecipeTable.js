@@ -36,12 +36,20 @@ class RecipeTable extends Component {
 
     componentDidMount() {
       // Load data from Redux store
-      this.props.fetchRecipes(INITIAL_FETCH_PARAMS_JSON)
-      .then(() => {
+      let funcReturn = this.props.fetchRecipes(INITIAL_FETCH_PARAMS_JSON);
+      // See comment in ReviewTable for explanation of this pattern
+      if(funcReturn) {
+        funcReturn.then(() => {
+          this.setState({
+            loading: false
+          })
+        });
+      }
+      else {
         this.setState({
           loading: false
-        })
-      });
+        });
+      }
     }
 
     // Sort tags alphabetically by name
@@ -95,7 +103,7 @@ class RecipeTable extends Component {
     };
 
     render() {
-      const { order, orderBy, rowsPerPage, currentPage, totalRows } = this.props;
+      const { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows, fetchRecipes } = this.props;
 
       if(this.state.loading) {
         return (
@@ -107,8 +115,8 @@ class RecipeTable extends Component {
       return (
         <SortablePaginatedTable
           headerRows={HEADER_ROWS}
-          dataRows={this.props.dataRows}
-          dataProviderFunc={this.props.fetchRecipes}
+          dataRows={dataRows}
+          dataProviderFunc={fetchRecipes}
           rowRenderFunc={this.renderRecipeRow}
           order={order}
           orderBy={orderBy}

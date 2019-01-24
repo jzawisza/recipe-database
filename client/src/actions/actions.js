@@ -5,9 +5,12 @@ import {
     DELETE_TAG,
     MODIFY_RECIPE,
     CLEAR_RECIPE,
-    FETCH_RECIPES
+    FETCH_RECIPES,
+    FETCH_FAVORITES,
+    FETCH_MEAL_PLANNER
 } from './actionTypes';
 import { doPost, doPatch, isErrorResponse, getErrMsg, getErrCode, doGet } from '../utils/AjaxUtils';
+import { FAVORITE_TYPE_STR, MEAL_PLANNER_TYPE_STR } from '../App';
 import qs from 'qs';
 
 // Helper function to create an error object
@@ -175,11 +178,48 @@ function receiveModifyStatus(responseJson) {
     }
 }
 
+// Fetch recipes for Search tab
 export function fetchRecipes(fetchParamJson) {
+    let fields = ['id', 'title', 'source', 'serves', 'data', 'modified_time'];
+    return fetchRecipesInternal(fields, FETCH_RECIPES, fetchParamJson);
+}
+
+// Fetch recipes for Favorites tab
+export function fetchFavorites(fetchParamJson) {    
+    return fetchSavedRecipes(fetchParamJson, false);
+}
+
+// Fetch recipes for Plan tabl
+export function fetchMealPlannerRecipes(fetchParamJson) {
+    return fetchSavedRecipes(fetchParamJson, true);
+}
+
+// Helper function to fetch any type of saved recipes
+function fetchSavedRecipes(fetchParamJson, isMealPlanner) {
+    let action = isMealPlanner ? FETCH_MEAL_PLANNER : FETCH_FAVORITES;
+    return fetchRecipesInternal(['title'], action, fetchParamJson);
+}
+
+// Helper function for fetching recipe information
+function fetchRecipesInternal(fields, action, fetchParamJson) {
     let { order, orderBy, rowsPerPage, currentPage } = fetchParamJson;
 
     return function(dispatch, getState) {
-        let state = getState().fetchRecipes;
+        let state = undefined;
+        switch(action) {
+            case FETCH_RECIPES:
+                state = getState().fetchRecipes;
+                break;
+            case FETCH_FAVORITES:
+                state = getState().fetchFavorites;
+                break;
+            case FETCH_MEAL_PLANNER:
+                state = getState().fetchMealPlannerRecipes;
+                break;
+            default:
+                dispatch(createErrorObject(action));
+        }
+
         // Create a new object that combines the requested changes with the previous state
         const paramsFromState = (({ order, orderBy, rowsPerPage, currentPage }) => ({ order, orderBy, rowsPerPage, currentPage } ))(state);
         let newFetchParamJson = Object.assign(paramsFromState, fetchParamJson);
@@ -187,31 +227,37 @@ export function fetchRecipes(fetchParamJson) {
         // If we have results and the method parameters are unchanged from the previous call to this function,
         // return the stored results
         if(state.data.length > 0 && state.order === order && state.orderBy === orderBy && state.rowsPerPage === rowsPerPage && state.currentPage === currentPage) {
-            dispatch(createFetchAction(state.data, state.data.length, newFetchParamJson));
+            dispatch(createFetchAction(action, state.data, state.data.length, newFetchParamJson));
         }
         // Otherwise, reload the data from the server
         else {
-            let fields = ['id', 'title', 'source', 'serves', 'data', 'modified_time'];
-            let url = generateFetchUrl('recipes', fields, newFetchParamJson);
+            // If we're fetching saved recipes, we need an additional query parameter
+            if(action === FETCH_FAVORITES) {
+                newFetchParamJson.withSavedRecipes = FAVORITE_TYPE_STR;
+            }
+            else if(action === FETCH_MEAL_PLANNER) {
+                newFetchParamJson.withSavedRecipes = MEAL_PLANNER_TYPE_STR;
+            }
+            let url = generateFetchUrl(fields, newFetchParamJson);
             return(doGet(url).then(responseJson => {
-                dispatch(createFetchAction(responseJson.data, responseJson.total, newFetchParamJson));
+                dispatch(createFetchAction(action, responseJson.data, responseJson.total, newFetchParamJson));
                 })
             );    
         }
     }
 }
 
-function createFetchAction(data, totalRows, fetchParamJson) {
+function createFetchAction(action, data, totalRows, fetchParamJson) {
     let payloadValue = Object.assign({ data, totalRows }, fetchParamJson);
     return {
-        type: FETCH_RECIPES,
+        type: action,
         payload: payloadValue
     }
 }
 
-function generateFetchUrl(table, fields, fetchParamJson) {
+function generateFetchUrl(fields, fetchParamJson) {
     // https://github.com/ljharb/qs
-    let { order, orderBy, rowsPerPage, currentPage } = fetchParamJson;
+    let { order, orderBy, rowsPerPage, currentPage, withSavedRecipes } = fetchParamJson;
     let sortObj = {};
     sortObj[orderBy] = order;
     let obj = {
@@ -220,5 +266,8 @@ function generateFetchUrl(table, fields, fetchParamJson) {
         '$limit': rowsPerPage,
         '$skip': currentPage * rowsPerPage
     };
-    return `${table}?${qs.stringify(obj)}`;
+    if(withSavedRecipes) {
+        obj.withSavedRecipes = withSavedRecipes;
+    }
+    return `recipes?${qs.stringify(obj)}`;
 }

@@ -5,7 +5,7 @@ function joinWithRecipes(context) {
   // TODO: figure out how to only include title here, not entire recipe object
   context.params.sequelize = {
     include: [ { model: recipes, as: 'SourceRecipe' }, { model: recipes, as: 'DestRecipe' } ]
-  }
+  };
 
   return context;
 }
