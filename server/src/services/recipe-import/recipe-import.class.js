@@ -3,12 +3,15 @@ const errors = require('@feathersjs/errors');
 const atob = require('atob');
 const CookingLightImporter = require('./importers/cooking-light-importer');
 const BonAppetitImporter = require('./importers/bon-appetit-importer');
+const EatingWellImporter = require ('./importers/eating-well-importer');
 
 function getImporterForUrl(url) {
   if(url.includes('cookinglight.com')) {
     return new CookingLightImporter();
   } else if(url.includes('bonappetit.com')) {
     return new BonAppetitImporter();
+  } else if(url.includes('eatingwell.com')) {
+    return new EatingWellImporter();
   } else {
     throw new errors.GeneralError(`No importer defined for URL ${url}`);
   }

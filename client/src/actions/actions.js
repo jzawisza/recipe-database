@@ -81,9 +81,10 @@ function receiveTags(response) {
         return createErrorObject(FETCH_TAGS, getErrCode(response), getErrMsg(response));
     }
     else {
+        let tagData = response.data.tags ? response.data.tags : [];
         return {
             type: FETCH_TAGS,
-            payload: { tags: response.data.tags }
+            payload: { tags: tagData }
         }
     }
 }

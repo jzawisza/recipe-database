@@ -60,13 +60,15 @@ class RecipeTable extends Component {
     // Take tag data from JSON payload and convert it to alphabetized comma-delimited string
     processTags = data => {
       let tagStr = '';
-      let sortedTags = data.tags.sort(this.tagSortFunc);
-      sortedTags.forEach(function(tagInfo) {
-        tagStr += tagInfo.name + ', ';
-      });
-      // Remove the trailing newlines
-      let tagsLen = tagStr.length;
-      tagStr = tagStr.substring(0, tagsLen - 2);
+      if(data.tags) {
+        let sortedTags = data.tags.sort(this.tagSortFunc);
+        sortedTags.forEach(function(tagInfo) {
+          tagStr += tagInfo.name + ', ';
+        });
+        // Remove the trailing newlines
+        let tagsLen = tagStr.length;
+        tagStr = tagStr.substring(0, tagsLen - 2);
+      }
 
       return tagStr;
     };

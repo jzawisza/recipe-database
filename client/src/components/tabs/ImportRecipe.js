@@ -210,8 +210,9 @@ class ImportRecipe extends Component {
                         Use this form to import a recipe from one of the following web sites:
                 </Typography>
                 <ul>
-                    <li>Cooking Light</li>
                     <li>Bon Appetit</li>
+                    <li>Cooking Light</li>
+                    <li>Eating Well</li>
                 </ul>
 
 
