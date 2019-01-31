@@ -11,7 +11,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import SharedTableHead from './SharedTableHead';
 import SharedTableToolbar from './SharedTableToolbar';
-import { buildFetchRecipeParamJson, ORDER_ASC, ORDER_DESC } from '../../actions/actionHelpers';
+import { buildFetchRecipeParamJson, addOnlyFavoritesToFetchRecipeParamJson, ORDER_ASC, ORDER_DESC } from '../../actions/actionHelpers';
 
 // NOTE: this code is adapted from the Material UI table samples at
 // https://material-ui.com/demos/tables/
@@ -40,6 +40,9 @@ class SortablePaginatedTable extends Component {
       }
   
       let fetchParamJson = buildFetchRecipeParamJson(order, orderBy, null, null);
+      if(this.props.onlyFavorites) {
+        fetchParamJson = addOnlyFavoritesToFetchRecipeParamJson(fetchParamJson);
+      }
       this.updateDataRows(fetchParamJson);
     };
 
@@ -192,6 +195,7 @@ class SortablePaginatedTable extends Component {
     title: PropTypes.string.isRequired,
     removeLabel: PropTypes.string.isRequired,
     removeIcon: PropTypes.element.isRequired,
+    onlyFavorites: PropTypes.bool
 };
   
 export default withStyles(styles)(SortablePaginatedTable);

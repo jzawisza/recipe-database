@@ -123,7 +123,7 @@ class SearchRecipes extends Component {
                     placeholder="Search for recipe"
                 />
 
-                <RecipeTable />
+                <RecipeTable onlyFavorites={this.state.onlyFavorites} />
 
             </div>
         );

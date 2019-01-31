@@ -102,8 +102,6 @@ ReviewTable.propTypes = {
 
 const mapStateToProps = (state, ownProps) => {
     let recipeState = ownProps.isMealPlanner ? state.fetchMealPlannerRecipes : state.fetchFavorites;
-    console.log('ReviewTable: mapStateToProps');
-    console.log(recipeState);
     const { data, order, orderBy, rowsPerPage, currentPage, totalRows } = recipeState;
     return { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows: data };
 }

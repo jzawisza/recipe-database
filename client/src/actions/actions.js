@@ -202,8 +202,6 @@ function fetchSavedRecipes(fetchParamJson, isMealPlanner) {
 
 // Helper function for fetching recipe information
 function fetchRecipesInternal(fields, action, fetchParamJson) {
-    let { order, orderBy, rowsPerPage, currentPage } = fetchParamJson;
-
     return function(dispatch, getState) {
         let state = undefined;
         switch(action) {
@@ -226,7 +224,7 @@ function fetchRecipesInternal(fields, action, fetchParamJson) {
 
         // If we have results and the method parameters are unchanged from the previous call to this function,
         // return the stored results
-        if(state.data.length > 0 && state.order === order && state.orderBy === orderBy && state.rowsPerPage === rowsPerPage && state.currentPage === currentPage) {
+        if(state.data.length > 0 && fetchParamsUnchanged(state, fetchParamJson, action)) {
             dispatch(createFetchAction(action, state.data, state.data.length, newFetchParamJson));
         }
         // Otherwise, reload the data from the server
@@ -270,4 +268,21 @@ function generateFetchUrl(fields, fetchParamJson) {
         obj.withSavedRecipes = withSavedRecipes;
     }
     return `recipes?${qs.stringify(obj)}`;
+}
+
+// Compare the sets of parameters passed to fetchRecipesInternal,
+// and return true if they're identical
+function fetchParamsUnchanged(stateJson, newJson, action) {
+    // We only need to check if withSavedRecipes is identical if we're fetching all recipes.
+    // For fetching just the Favorites or Meal Planner recipes, we manage that parameter internally,
+    // so the check leads to incorrect results.
+    let identicalWithSavedRecipes = true;
+    if(action === FETCH_RECIPES) {
+        identicalWithSavedRecipes = (stateJson.withSavedRecipes === newJson.withSavedRecipes);
+    }
+    return stateJson.order === newJson.order
+        && stateJson.orderBy === newJson.orderBy
+        && stateJson.rowsPerPage === newJson.rowsPerPage
+        && stateJson.currentPage === newJson.currentPage
+        && identicalWithSavedRecipes;
 }

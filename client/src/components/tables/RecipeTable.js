@@ -8,7 +8,8 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import SortablePaginatedTable from './SortablePaginatedTable';
 import { fetchRecipes } from '../../actions/actions';
-import { ORDER_ASC } from '../../actions/actionHelpers';
+import { ORDER_ASC, buildFetchRecipeParamJson, addOnlyFavoritesToFetchRecipeParamJson } from '../../actions/actionHelpers';
+
 
 const HEADER_ROWS = [
     { id: 'title', numeric: false, disablePadding: true, label: 'Title', sortable: true },
@@ -35,8 +36,28 @@ class RecipeTable extends Component {
     };
 
     componentDidMount() {
-      // Load data from Redux store
-      let funcReturn = this.props.fetchRecipes(INITIAL_FETCH_PARAMS_JSON);
+      this.reloadRecipesFromServer(INITIAL_FETCH_PARAMS_JSON, this.props.onlyFavorites);
+    }
+
+    componentDidUpdate(prevProps) {
+      const { order, orderBy, rowsPerPage, currentPage, onlyFavorites } = this.props;
+      if(prevProps.onlyFavorites !== onlyFavorites) {
+        let fetchParamJson = buildFetchRecipeParamJson(order, orderBy, rowsPerPage, currentPage);
+        this.reloadRecipesFromServer(fetchParamJson, onlyFavorites);
+      }
+    }
+
+    // Helper function to load data from the Redux store
+    reloadRecipesFromServer(fetchParamJson, onlyFavorites) {
+      let newFetchParamJson = {};
+      if(onlyFavorites) {
+        newFetchParamJson = addOnlyFavoritesToFetchRecipeParamJson(fetchParamJson);
+      }
+      else {
+        newFetchParamJson = fetchParamJson;
+      }
+
+      let funcReturn = this.props.fetchRecipes(newFetchParamJson);
       // See comment in ReviewTable for explanation of this pattern
       if(funcReturn) {
         funcReturn.then(() => {
@@ -103,7 +124,7 @@ class RecipeTable extends Component {
     };
 
     render() {
-      const { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows, fetchRecipes } = this.props;
+      const { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows, fetchRecipes, onlyFavorites } = this.props;
 
       if(this.state.loading) {
         return (
@@ -126,6 +147,7 @@ class RecipeTable extends Component {
           title='Recipes'
           removeLabel='Delete'
           removeIcon={<DeleteIcon />}
+          onlyFavorites={onlyFavorites}
         />
       );
     }
@@ -138,7 +160,8 @@ RecipeTable.propTypes = {
   orderBy: PropTypes.string.isRequired,
   rowsPerPage: PropTypes.number.isRequired,
   currentPage: PropTypes.number.isRequired,
-  totalRows: PropTypes.number.isRequired
+  totalRows: PropTypes.number.isRequired,
+  onlyFavorites: PropTypes.bool.isRequired
 };
 
 const mapStateToProps = (state) => {

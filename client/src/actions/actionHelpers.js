@@ -1,3 +1,5 @@
+import { FAVORITE_TYPE_STR } from '../App';
+
 const ORDER_KEY = 'order';
 const ORDER_BY_KEY = 'orderBy';
 const ROWS_PER_PAGE_KEY = 'rowsPerPage';
@@ -24,4 +26,10 @@ export function buildFetchRecipeParamJson(order, orderBy, rowsPerPage, currentPa
     paramJson[CURRENT_PAGE_KEY] = currentPage;
 
     return paramJson;
+}
+
+// Given a JSON object constructed by buildFetchRecipeParamJson above,
+// add information to it telling the query to only return recipes marked as favorites
+export function addOnlyFavoritesToFetchRecipeParamJson(fetchRecipeParamJson) {
+    return Object.assign(fetchRecipeParamJson, { withSavedRecipes: FAVORITE_TYPE_STR });
 }

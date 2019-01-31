@@ -15,7 +15,13 @@ const initialState = {
 export function fetchRecipes(state = initialState, action) {
     switch(action.type) {
         case FETCH_RECIPES:
-            return Object.assign({}, state, {...action.payload});
+            let newObj = Object.assign({}, state, {...action.payload});
+            // If we deselect showing only favorites on the Search tab,
+            // don't keep the key related to that in the state
+            if(!action.payload.withSavedRecipes) {
+                delete newObj.withSavedRecipes;
+            }
+            return newObj;
         default:
             return state;
     }
