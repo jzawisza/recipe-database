@@ -209,10 +209,9 @@ class Recipe extends Component {
             // If we have a saved recipe ID, the record already exists
             // in the database, so do a PATCH to update it
             let payload = {
-                id: savedRecipeId,
                 value: !prevValue
             }
-            doPatch('saved-recipes', payload)
+            doPatch(`saved-recipes/${savedRecipeId}`, payload)
             .then(responseJson => {
                 if (isErrorResponse(responseJson)) {
                     console.error('Error deleting saved recipe information from database');
