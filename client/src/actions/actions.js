@@ -7,7 +7,8 @@ import {
     CLEAR_RECIPE,
     FETCH_RECIPES,
     FETCH_FAVORITES,
-    FETCH_MEAL_PLANNER
+    FETCH_MEAL_PLANNER,
+    TOGGLE_SEARCH_TAB_ONLY_FAVORITES
 } from './actionTypes';
 import { doPost, doPatch, isErrorResponse, getErrMsg, getErrCode, doGet } from '../utils/AjaxUtils';
 import { FAVORITE_TYPE_STR, MEAL_PLANNER_TYPE_STR } from '../App';
@@ -285,4 +286,10 @@ function fetchParamsUnchanged(stateJson, newJson, action) {
         && stateJson.rowsPerPage === newJson.rowsPerPage
         && stateJson.currentPage === newJson.currentPage
         && identicalWithSavedRecipes;
+}
+
+export function toggleSearchTabOnlyFavorites() {
+    return {
+        type: TOGGLE_SEARCH_TAB_ONLY_FAVORITES
+    }
 }

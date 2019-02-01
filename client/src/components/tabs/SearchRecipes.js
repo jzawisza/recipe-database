@@ -13,7 +13,9 @@ import SearchBar from 'material-ui-search-bar'
 import {debounce} from 'throttle-debounce';
 import RecipeTable from '../tables/RecipeTable';
 import { Helmet } from 'react-helmet';
+import { connect } from 'react-redux';
 import { MAIN_TITLE } from '../../App';
+import { toggleSearchTabOnlyFavorites } from '../../actions/actions';
 
 const SEARCH_ANY = 'any';
 
@@ -34,7 +36,6 @@ const styles = theme => ({
 class SearchRecipes extends Component {
     state = {
         searchBarValue: '',
-        onlyFavorites: false,
         searchBy: SEARCH_ANY
     };
 
@@ -54,9 +55,7 @@ class SearchRecipes extends Component {
     }
 
     handleOnlyFavoritesChange = event => {
-        this.setState({
-            onlyFavorites: event.target.checked
-        });
+        this.props.toggleSearchTabOnlyFavorites();
     }
 
     handleSearchByChange = event => {
@@ -66,7 +65,7 @@ class SearchRecipes extends Component {
      }
 
     render() {
-        const { classes } = this.props;
+        const { classes, showOnlyFavorites } = this.props;
 
         return (
             <div>
@@ -81,7 +80,7 @@ class SearchRecipes extends Component {
                     <FormControlLabel
                         control={
                             <Switch
-                            checked={this.state.onlyFavorites}
+                            checked={showOnlyFavorites}
                             onChange={this.handleOnlyFavoritesChange.bind('this')}
                             value='onlyFavorites'
                             color='primary'
@@ -123,7 +122,7 @@ class SearchRecipes extends Component {
                     placeholder="Search for recipe"
                 />
 
-                <RecipeTable onlyFavorites={this.state.onlyFavorites} />
+                <RecipeTable onlyFavorites={showOnlyFavorites || false} />
 
             </div>
         );
@@ -131,7 +130,15 @@ class SearchRecipes extends Component {
 }
 
 SearchRecipes.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    showOnlyFavorites: PropTypes.bool,
+    toggleSearchTabOnlyFavorites: PropTypes.func.isRequired
 };
 
-export default withStyles(styles, { withTheme: true })(SearchRecipes); 
+const mapStateToProps = (state) => {
+    const { showOnlyFavorites } = state.searchTabOnlyFavorites;
+    return { showOnlyFavorites };
+};
+
+export default connect(mapStateToProps, { toggleSearchTabOnlyFavorites })(withStyles(styles, { withTheme: true })(SearchRecipes));
+
