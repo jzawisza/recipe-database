@@ -22,7 +22,7 @@ import TagBar from '../TagBar';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { MAIN_TITLE } from '../../App';
-import { clearTags } from '../../actions/actions';
+import { clearTags, clearRecipesCache } from '../../actions/actions';
 import { store } from '../../configureStore';
 import { doPost } from '../../utils/AjaxUtils';
 
@@ -176,6 +176,11 @@ class ImportRecipe extends Component {
             }
             let importStatusMsg = importSucceeded ? IMPORT_STATUS_OK : `${IMPORT_STATUS_ERROR}: ${errMsg}`;
 
+            if(importSucceeded) {
+                // Force data to be reloaded from the server, since we have new data if the import succeeded
+                this.props.clearRecipesCache();
+            }
+
             // Clear out data that was entered in UI
             document.getElementById(URL_INPUT_ID).value = '';
             this.props.clearTags();
@@ -304,6 +309,8 @@ class ImportRecipe extends Component {
 
 ImportRecipe.propTypes = {
     classes: PropTypes.object.isRequired,
-    clearTags: PropTypes.func.isRequired};
+    clearTags: PropTypes.func.isRequired,
+    clearRecipesCache: PropTypes.func.isRequired
+};
 
-export default connect(null, { clearTags })(withStyles(styles, { withTheme: true })(ImportRecipe));
+export default connect(null, { clearTags, clearRecipesCache })(withStyles(styles, { withTheme: true })(ImportRecipe));

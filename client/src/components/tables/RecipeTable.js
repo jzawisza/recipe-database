@@ -7,7 +7,7 @@ import TableCell from '@material-ui/core/TableCell';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import SortablePaginatedTable from './SortablePaginatedTable';
-import { fetchRecipes } from '../../actions/actions';
+import { fetchRecipes, clearRecipesCache } from '../../actions/actions';
 import { ORDER_ASC, buildFetchRecipeParamJson, addOnlyFavoritesToFetchRecipeParamJson } from '../../actions/actionHelpers';
 
 
@@ -147,6 +147,10 @@ class RecipeTable extends Component {
           title='Recipes'
           removeLabel='Delete'
           removeIcon={<DeleteIcon />}
+          removeModalTitle='Delete selected recipes from database?'
+          removeModalButtonName='Delete'
+          removeAPI='recipes'
+          clearCacheFunc={clearRecipesCache}
           onlyFavorites={onlyFavorites}
         />
       );
@@ -155,6 +159,7 @@ class RecipeTable extends Component {
 
 RecipeTable.propTypes = {
   fetchRecipes: PropTypes.func.isRequired,
+  clearRecipesCache: PropTypes.func.isRequired,
   dataRows: PropTypes.array.isRequired,
   order: PropTypes.number.isRequired,
   orderBy: PropTypes.string.isRequired,
@@ -169,4 +174,4 @@ const mapStateToProps = (state) => {
   return { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows: data };
 }
   
-export default (connect(mapStateToProps, { fetchRecipes }))(RecipeTable);
+export default (connect(mapStateToProps, { fetchRecipes, clearRecipesCache }))(RecipeTable);

@@ -55,7 +55,7 @@ class SortablePaginatedTable extends Component {
       }
     };
   
-    handleClick = (event, id) => {
+    handleSelectForRemoval = (e, id) => {
       const { selected } = this.state;
       const selectedIndex = selected.indexOf(id);
       let newSelected = [];
@@ -104,17 +104,23 @@ class SortablePaginatedTable extends Component {
     isSelected = id => this.state.selected.indexOf(id) !== -1;
   
     render() {
-      const { classes, title, removeLabel, removeIcon, headerRows, dataRows, rowRenderFunc, order, orderBy, currentPage, rowsPerPage, totalRows } = this.props;
+      const { classes, title, removeLabel, removeIcon, removeModalTitle, removeModalButtonName, removeAPI, clearCacheFunc,
+        headerRows, dataRows, rowRenderFunc, order, orderBy, currentPage, rowsPerPage, totalRows } = this.props;
       const { selected, loading } = this.state;
       const emptyRows = rowsPerPage - dataRows.length;
-  
+
       return (
         <Paper className={classes.root}>
           <SharedTableToolbar
-            numSelected={selected.length}
+            selected={selected}
             title={title}
             removeLabel={removeLabel}
             removeIcon={removeIcon}
+            removeModalTitle={removeModalTitle}
+            removeModalButtonName={removeModalButtonName}
+            removeAPI={removeAPI}
+            refreshFunc={this.updateDataRows}
+            clearCacheFunc={clearCacheFunc}
           />
           <div className={classes.tableWrapper}>
             {loading
@@ -136,15 +142,20 @@ class SortablePaginatedTable extends Component {
                 <TableBody>
                   {dataRows
                     .map(n => {
-                      const isSelected = this.isSelected(n.id);
+                      // If we're loading Favorites or Meal Planner recipes, use the ID
+                      // from the saved-recipes table in the database to track what's selected,
+                      // so we can delete from that table.
+                      // Otherwise, use the ID from the recipes table.
+                      let selectedId = n['savedRecipe.id'] ? n['savedRecipe.id'] : n.id;
+                      const isSelected = this.isSelected(selectedId);
                       return (
                         <TableRow
                           hover
-                          onClick={event => this.handleClick(event, n.id)}
+                          onClick={event => this.handleSelectForRemoval(event, selectedId)}
                           role="checkbox"
                           aria-checked={isSelected}
                           tabIndex={-1}
-                          key={n.id}
+                          key={selectedId}
                           selected={isSelected}
                         >
                           <TableCell padding="checkbox">
@@ -195,6 +206,10 @@ class SortablePaginatedTable extends Component {
     title: PropTypes.string.isRequired,
     removeLabel: PropTypes.string.isRequired,
     removeIcon: PropTypes.element.isRequired,
+    removeModalTitle: PropTypes.string.isRequired,
+    removeModalButtonName: PropTypes.string.isRequired,
+    removeAPI: PropTypes.string.isRequired,
+    clearCacheFunc: PropTypes.func.isRequired,
     onlyFavorites: PropTypes.bool
 };
   

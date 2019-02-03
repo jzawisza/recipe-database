@@ -8,7 +8,10 @@ import {
     FETCH_RECIPES,
     FETCH_FAVORITES,
     FETCH_MEAL_PLANNER,
-    TOGGLE_SEARCH_TAB_ONLY_FAVORITES
+    TOGGLE_SEARCH_TAB_ONLY_FAVORITES,
+    CLEAR_FAVORITES_CACHE,
+    CLEAR_RECIPES_CACHE,
+    CLEAR_MEAL_PLANNER_CACHE
 } from './actionTypes';
 import { doPost, doPatch, isErrorResponse, getErrMsg, getErrCode, doGet } from '../utils/AjaxUtils';
 import { FAVORITE_TYPE_STR, MEAL_PLANNER_TYPE_STR } from '../App';
@@ -292,4 +295,22 @@ export function toggleSearchTabOnlyFavorites() {
     return {
         type: TOGGLE_SEARCH_TAB_ONLY_FAVORITES
     }
+}
+
+export function clearRecipesCache() {
+    return {
+        type: CLEAR_RECIPES_CACHE
+    };
+}
+
+export function clearFavoritesCache() {
+    return {
+        type: CLEAR_FAVORITES_CACHE
+    };
+}
+
+export function clearMealPlannerCache() {
+    return {
+        type: CLEAR_MEAL_PLANNER_CACHE
+    };
 }

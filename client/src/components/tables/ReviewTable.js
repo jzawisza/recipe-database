@@ -6,7 +6,7 @@ import TableCell from '@material-ui/core/TableCell';
 import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
 import RemoveShoppingCartIcon from '@material-ui/icons/RemoveShoppingCart';
 import SortablePaginatedTable from './SortablePaginatedTable';
-import { fetchFavorites, fetchMealPlannerRecipes } from '../../actions/actions';
+import { fetchFavorites, fetchMealPlannerRecipes, clearFavoritesCache, clearMealPlannerCache } from '../../actions/actions';
 import { ORDER_ASC } from '../../actions/actionHelpers';
 
 const HEADER_ROWS = [
@@ -83,6 +83,10 @@ class ReviewTable extends Component {
                 title={isMealPlanner ? 'Meal Planner' : 'Favorites'}
                 removeLabel={isMealPlanner ? 'Remove from Meal Planner' : 'Remove from Favorites'}
                 removeIcon={isMealPlanner ? <RemoveShoppingCartIcon /> : <FavoriteBorderIcon />}
+                removeModalTitle={isMealPlanner ? 'Remove recipes from Meal Planner?' : 'Remove recipes from Favorites?'}
+                removeModalButtonName='Remove'
+                removeAPI='saved-recipes'
+                clearCacheFunc={isMealPlanner ? clearMealPlannerCache : clearFavoritesCache}
             />
         );
     }
@@ -91,6 +95,8 @@ class ReviewTable extends Component {
 ReviewTable.propTypes = {
   fetchFavorites: PropTypes.func.isRequired,
   fetchMealPlannerRecipes: PropTypes.func.isRequired,
+  clearFavoritesCache:  PropTypes.func.isRequired,
+  clearMealPlannerCache:  PropTypes.func.isRequired,
   dataRows: PropTypes.array.isRequired,
   order: PropTypes.number.isRequired,
   orderBy: PropTypes.string.isRequired,
@@ -106,4 +112,4 @@ const mapStateToProps = (state, ownProps) => {
     return { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows: data };
 }
 
-export default (connect(mapStateToProps, { fetchFavorites, fetchMealPlannerRecipes }))(ReviewTable);
+export default (connect(mapStateToProps, { fetchFavorites, fetchMealPlannerRecipes, clearFavoritesCache, clearMealPlannerCache }))(ReviewTable);
