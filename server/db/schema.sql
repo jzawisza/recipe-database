@@ -52,6 +52,11 @@ CREATE TABLE recipes (
       serves integer,
       calories_per_serving integer,
       data jsonb NOT NULL DEFAULT '{}'::jsonb,
+      document_vector tsvector,
+      source_vector tsvector,
+      title_vector tsvector,
+      ingredients_vector tsvector,
+      tags_vector tsvector,
       creation_time timestamp with time zone NOT NULL,
       modified_time timestamp with time zone NOT NULL
 );
@@ -86,6 +91,15 @@ CREATE TABLE saved_recipes (
 );
 
 --
+-- Indexes for free-text search
+--
+CREATE INDEX idx_fts_document_vector ON recipes USING gin(document_vector);
+CREATE INDEX idx_fts_source_vector ON recipes USING gin(source_vector);
+CREATE INDEX idx_fts_title_vector ON recipes USING gin(title_vector);
+CREATE INDEX idx_fts_ingredients_vector ON recipes USING gin(ingredients_vector);
+CREATE INDEX idx_fts_tags_vector ON recipes USING gin(tags_vector);
+
+--
 -- Sequence ownership
 --
 ALTER SEQUENCE recipe_id_seq OWNED BY recipes.id;
@@ -98,6 +112,126 @@ ALTER SEQUENCE saved_recipe_id_seq OWNED BY saved_recipes.id;
 -- Default user
 --
 INSERT INTO users(id, username, display_name) VALUES(0, 'defaultuser', 'Default User');
+
+--
+-- Helper function to get tag name string from recipe metadata
+--
+CREATE OR REPLACE FUNCTION get_tag_name_string_from_metadata(IN metadata jsonb)
+RETURNS text AS $$
+DECLARE
+      tag_name_str text;
+BEGIN
+      select array_to_string(array(select jsonb_array_elements(metadata->'tags')->'name'), ' ') INTO tag_name_str;
+      RETURN tag_name_str;
+END;
+$$ LANGUAGE plpgsql;
+
+
+--
+-- Trigger functions
+--
+CREATE OR REPLACE FUNCTION update_search_vectors()
+RETURNS TRIGGER AS $$
+DECLARE
+      tag_name_str text;
+      document_text text;
+BEGIN
+      document_text = '';
+
+      IF NEW.source IS NOT NULL THEN
+            document_text := document_text || NEW.source || ' ';
+      END IF;
+      IF OLD.source IS DISTINCT FROM NEW.source THEN
+            SELECT to_tsvector(NEW.source) INTO NEW.source_vector;
+      END IF;
+
+      document_text := document_text || NEW.title || ' ';
+      IF OLD.title IS DISTINCT FROM NEW.title THEN
+            SELECT to_tsvector(NEW.title) INTO NEW.title_vector;            
+      END IF;
+
+      document_text := document_text || NEW.ingredients || ' ';
+      IF OLD.ingredients IS DISTINCT FROM NEW.ingredients THEN
+            SELECT to_tsvector(NEW.ingredients) INTO NEW.ingredients_vector;      
+      END IF;
+
+      document_text := document_text || NEW.preparation || ' ';
+
+      IF NEW.notes IS NOT NULL THEN
+            document_text := document_text || NEW.notes || ' ';
+      END IF;
+      
+      -- Initialize the tag_name_str variable with the old data,
+      -- so we don't write a null string into the document vector
+      SELECT get_tag_name_string_from_metadata(OLD.data) INTO tag_name_str;
+      IF OLD.data IS DISTINCT FROM NEW.data THEN
+            -- Extract tags from metadata
+            SELECT get_tag_name_string_from_metadata(NEW.data) INTO tag_name_str;
+            SELECT to_tsvector(tag_name_str) INTO NEW.tags_vector;
+      END IF;
+      document_text := document_text || tag_name_str || ' ';
+
+      IF document_text <> ''
+      THEN
+            SELECT to_tsvector(document_text) INTO NEW.document_vector;
+      END IF;
+
+      RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION insert_search_vectors()
+RETURNS TRIGGER AS $$
+DECLARE
+      tag_name_str text;
+      document_text text;
+BEGIN
+      document_text :=  '';
+
+      IF NEW.source IS NOT NULL THEN
+            SELECT to_tsvector(NEW.source) INTO NEW.source_vector;
+            document_text := document_text || NEW.source || ' ';
+      END IF;
+
+      SELECT to_tsvector(NEW.title) INTO NEW.title_vector;
+      document_text := document_text || NEW.title || ' ';
+
+      SELECT to_tsvector(NEW.ingredients) INTO NEW.ingredients_vector;
+      document_text := document_text || NEW.ingredients || ' ';
+
+      document_text := document_text || NEW.preparation || ' ';
+
+      IF NEW.notes IS NOT NULL THEN
+            document_text := document_text || NEW.notes || ' ';
+      END IF;
+
+      IF NEW.data IS NOT NULL THEN
+            -- Extract tags from metadata
+            SELECT get_tag_name_string_from_metadata(NEW.data) INTO tag_name_str;
+            SELECT to_tsvector(tag_name_str) INTO NEW.tags_vector;
+            document_text := document_text || tag_name_str || ' ';
+      END IF;
+
+      SELECT to_tsvector(document_text) INTO NEW.document_vector;
+
+      RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+--
+-- Triggers for recipe FTS indexes
+--
+CREATE TRIGGER fts_recipes_update
+      BEFORE UPDATE ON recipes
+      FOR EACH ROW
+      EXECUTE PROCEDURE update_search_vectors();
+
+CREATE TRIGGER fts_recipes_insert
+      BEFORE INSERT ON recipes
+      FOR EACH ROW
+      EXECUTE PROCEDURE insert_search_vectors();
+
 
 --
 -- PostgreSQL database dump complete
