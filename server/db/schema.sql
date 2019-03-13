@@ -83,7 +83,7 @@ CREATE TYPE saved_recipe_type AS ENUM('FAVORITES', 'MEAL_PLANNER');
 
 CREATE TABLE saved_recipes (
       id bigint NOT NULL DEFAULT NEXTVAL('saved_recipe_id_seq') CONSTRAINT saved_recipes_pkey PRIMARY KEY,
-      user_id bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      user_id bigint NOT NULL,
       recipe_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
       type saved_recipe_type NOT NULL,
       value boolean NOT NULL,
