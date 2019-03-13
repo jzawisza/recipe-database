@@ -166,7 +166,8 @@ class Recipe extends Component {
       };
 
     persistChange(name, value) {
-        this.props.modifyRecipe(name, value, this.props.id);
+        let { id, newRecipe } = this.props;
+        this.props.modifyRecipe(name, value, id, newRecipe);
 
         this.setState({
             saveSnackbarVisible: true

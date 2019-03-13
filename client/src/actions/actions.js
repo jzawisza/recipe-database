@@ -130,7 +130,7 @@ function createTagDeletedAction(tagArray, response) {
 }
 
 // Upsert new recipe information into the database
-export function modifyRecipe(key, newValue, id) {
+export function modifyRecipe(key, newValue, id, isNewRecipe) {
     return function(dispatch, getState) {
         // Check to see if we have all required fields, and if we do, upsert the recipe information
         // into the database.
@@ -140,8 +140,11 @@ export function modifyRecipe(key, newValue, id) {
         recipeUpdate[key] = newValue;
         let { recipe } = getState().editRecipe;
         let newRecipe = Object.assign({}, recipe, recipeUpdate);
-        if(newRecipe.title && newRecipe.ingredients && newRecipe.preparation) {
-            // We have all required fields: do the update to the database
+        
+        // Only update the database if one of the following are true:
+        // 1) We have all required fields for a new recipe
+        // 2) This is an existing recipe, i.e. it already has all required fields
+        if(!isNewRecipe || (newRecipe.title && newRecipe.ingredients && newRecipe.preparation)) {
             let urlPromise = undefined;
             // Do a POST for initial creation, and a PATCH for subsequent updates
             if (id) {

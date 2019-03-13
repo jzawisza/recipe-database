@@ -24,6 +24,13 @@ function filterOutput(context) {
   return context;
 }
 
+// When we link to a recipe, update the modified time of the source recipe
+function updateRecipeModifiedTime(context) {
+  const recipeService = context.app.services.recipes;
+  let recipeId = context.result.sourceId;
+  recipeService.patch(recipeId, { updatedAt: Date.now() });
+}
+
 module.exports = {
   before: {
     all: [],
@@ -39,7 +46,7 @@ module.exports = {
     all: [],
     find: [filterOutput],
     get: [],
-    create: [],
+    create: [updateRecipeModifiedTime],
     update: [],
     patch: [],
     remove: []
