@@ -8,7 +8,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import SortablePaginatedTable from './SortablePaginatedTable';
 import { fetchRecipes, clearRecipesCache } from '../../actions/actions';
-import { ORDER_ASC, buildFetchRecipeParamJson, addOnlyFavoritesToFetchRecipeParamJson } from '../../actions/actionHelpers';
+import { ORDER_ASC, buildFetchRecipeParamJson } from '../../actions/actionHelpers';
 
 
 const HEADER_ROWS = [
@@ -36,28 +36,27 @@ class RecipeTable extends Component {
     };
 
     componentDidMount() {
-      this.reloadRecipesFromServer(INITIAL_FETCH_PARAMS_JSON, this.props.onlyFavorites);
+      const { onlyFavorites, searchBy, searchKeywords } = this.props;
+      let fetchParamJson = INITIAL_FETCH_PARAMS_JSON;
+      Object.assign(fetchParamJson, { onlyFavorites });
+      if (searchBy && searchKeywords) {
+        let searchParamJson = { searchBy, searchKeywords };
+        Object.assign(fetchParamJson, searchParamJson);
+      }
+      this.reloadRecipesFromServer(fetchParamJson);
     }
 
     componentDidUpdate(prevProps) {
-      const { order, orderBy, rowsPerPage, currentPage, onlyFavorites } = this.props;
-      if(prevProps.onlyFavorites !== onlyFavorites) {
-        let fetchParamJson = buildFetchRecipeParamJson(order, orderBy, rowsPerPage, currentPage);
-        this.reloadRecipesFromServer(fetchParamJson, onlyFavorites);
+      const { order, orderBy, rowsPerPage, currentPage, onlyFavorites, searchBy, searchKeywords } = this.props;
+      if(prevProps.onlyFavorites !== onlyFavorites || prevProps.searchBy !== searchBy || prevProps.searchKeywords !== searchKeywords) {
+        let fetchParamJson = buildFetchRecipeParamJson(order, orderBy, rowsPerPage, currentPage, onlyFavorites, searchBy, searchKeywords);
+        this.reloadRecipesFromServer(fetchParamJson);
       }
     }
 
     // Helper function to load data from the Redux store
-    reloadRecipesFromServer(fetchParamJson, onlyFavorites) {
-      let newFetchParamJson = {};
-      if(onlyFavorites) {
-        newFetchParamJson = addOnlyFavoritesToFetchRecipeParamJson(fetchParamJson);
-      }
-      else {
-        newFetchParamJson = fetchParamJson;
-      }
-
-      let funcReturn = this.props.fetchRecipes(newFetchParamJson);
+    reloadRecipesFromServer(fetchParamJson) {
+      let funcReturn = this.props.fetchRecipes(fetchParamJson);
       // See comment in ReviewTable for explanation of this pattern
       if(funcReturn) {
         funcReturn.then(() => {
@@ -124,7 +123,7 @@ class RecipeTable extends Component {
     };
 
     render() {
-      const { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows, fetchRecipes, onlyFavorites } = this.props;
+      const { order, orderBy, rowsPerPage, currentPage, totalRows, dataRows, fetchRecipes, onlyFavorites, searchBy, searchKeywords } = this.props;
 
       if(this.state.loading) {
         return (
@@ -144,6 +143,8 @@ class RecipeTable extends Component {
           rowsPerPage={rowsPerPage}
           currentPage={currentPage}
           totalRows={totalRows}
+          searchBy={searchBy}
+          searchKeywords={searchKeywords}
           title='Recipes'
           removeLabel='Delete'
           removeIcon={<DeleteIcon />}
@@ -166,7 +167,9 @@ RecipeTable.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
   currentPage: PropTypes.number.isRequired,
   totalRows: PropTypes.number.isRequired,
-  onlyFavorites: PropTypes.bool.isRequired
+  onlyFavorites: PropTypes.bool.isRequired,
+  searchBy: PropTypes.string,
+  searchKeywords: PropTypes.string
 };
 
 const mapStateToProps = (state) => {

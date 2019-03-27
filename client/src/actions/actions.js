@@ -226,7 +226,8 @@ function fetchRecipesInternal(fields, action, fetchParamJson) {
         }
 
         // Create a new object that combines the requested changes with the previous state
-        const paramsFromState = (({ order, orderBy, rowsPerPage, currentPage }) => ({ order, orderBy, rowsPerPage, currentPage } ))(state);
+        const paramsFromState = (({ order, orderBy, rowsPerPage, currentPage, onlyFavorites, searchBy, searchKeywords }) =>
+            ({ order, orderBy, rowsPerPage, currentPage, onlyFavorites, searchBy, searchKeywords } ))(state);
         let newFetchParamJson = Object.assign(paramsFromState, fetchParamJson);
 
         // If we have results and the method parameters are unchanged from the previous call to this function,
@@ -237,7 +238,7 @@ function fetchRecipesInternal(fields, action, fetchParamJson) {
         // Otherwise, reload the data from the server
         else {
             // If we're fetching saved recipes, we need an additional query parameter
-            if(action === FETCH_FAVORITES) {
+            if(action === FETCH_FAVORITES || newFetchParamJson.onlyFavorites) {
                 newFetchParamJson.withSavedRecipes = FAVORITE_TYPE_STR;
             }
             else if(action === FETCH_MEAL_PLANNER) {
@@ -262,7 +263,7 @@ function createFetchAction(action, data, totalRows, fetchParamJson) {
 
 function generateFetchUrl(fields, fetchParamJson) {
     // https://github.com/ljharb/qs
-    let { order, orderBy, rowsPerPage, currentPage, withSavedRecipes } = fetchParamJson;
+    let { order, orderBy, rowsPerPage, currentPage, withSavedRecipes, searchBy, searchKeywords } = fetchParamJson;
     let sortObj = {};
     sortObj[orderBy] = order;
     let obj = {
@@ -274,7 +275,14 @@ function generateFetchUrl(fields, fetchParamJson) {
     if(withSavedRecipes) {
         obj.withSavedRecipes = withSavedRecipes;
     }
-    return `recipes?${qs.stringify(obj)}`;
+
+    if(searchBy && searchKeywords) {
+        let searchObj = Object.assign({ 'field': searchBy, 'keywords': searchKeywords}, obj);
+        return `search-recipes?${qs.stringify(searchObj)}`;
+    }
+    else {
+        return `recipes?${qs.stringify(obj)}`;
+    }
 }
 
 // Compare the sets of parameters passed to fetchRecipesInternal,
@@ -291,6 +299,8 @@ function fetchParamsUnchanged(stateJson, newJson, action) {
         && stateJson.orderBy === newJson.orderBy
         && stateJson.rowsPerPage === newJson.rowsPerPage
         && stateJson.currentPage === newJson.currentPage
+        && stateJson.searchBy === newJson.searchBy
+        && stateJson.searchKeywords === newJson.searchKeywords
         && identicalWithSavedRecipes;
 }
 

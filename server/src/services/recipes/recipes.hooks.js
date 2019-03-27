@@ -1,16 +1,12 @@
-const errors = require('@feathersjs/errors');
 const DEFAULT_USER_ID = 0;
-
-const invalidSavedRecipeParamError = new errors.BadRequest('The withSavedRecipes query parameter requires a value of either FAVORITES or MEAL_PLANNER.');
+const { checkWithSavedRecipesParam } = require('../helpers/check-params');
 
 function joinWithSavedRecipes(context) {
   let { withSavedRecipes } = context.params.query;
   // Write the check this way to distinguish between query parameters that don't include withSavedRecipes at all (valid)
   // and query parameters that include withSavedRecipes, but without a value (not valid)
   if(withSavedRecipes !== undefined) {
-    if(!(withSavedRecipes === 'FAVORITES' || withSavedRecipes === 'MEAL_PLANNER')) {
-      throw invalidSavedRecipeParamError;
-    }
+    checkWithSavedRecipesParam(context.params.query);
 
     // If we have a valid value for this query parameter, join the recipes table with saved_recipes
     // and filter the query based on the query parameter

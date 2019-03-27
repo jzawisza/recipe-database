@@ -11,7 +11,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import SharedTableHead from './SharedTableHead';
 import SharedTableToolbar from './SharedTableToolbar';
-import { buildFetchRecipeParamJson, addOnlyFavoritesToFetchRecipeParamJson, ORDER_ASC, ORDER_DESC } from '../../actions/actionHelpers';
+import { buildFetchRecipeParamJson, ORDER_ASC, ORDER_DESC } from '../../actions/actionHelpers';
 
 // NOTE: this code is adapted from the Material UI table samples at
 // https://material-ui.com/demos/tables/
@@ -39,10 +39,7 @@ class SortablePaginatedTable extends Component {
         order = (this.props.order === ORDER_DESC) ? ORDER_ASC : ORDER_DESC;
       }
   
-      let fetchParamJson = buildFetchRecipeParamJson(order, orderBy, null, null);
-      if(this.props.onlyFavorites) {
-        fetchParamJson = addOnlyFavoritesToFetchRecipeParamJson(fetchParamJson);
-      }
+      let fetchParamJson = buildFetchRecipeParamJson(order, orderBy, null, null, this.props.onlyFavorites, null, null);
       this.updateDataRows(fetchParamJson);
     };
 
@@ -77,14 +74,14 @@ class SortablePaginatedTable extends Component {
     };
   
     handleChangePage = (event, currentPage) => {
-      let fetchParamJson = buildFetchRecipeParamJson(null, null, null, currentPage);
+      let fetchParamJson = buildFetchRecipeParamJson(null, null, null, currentPage, this.props.onlyFavorites, null, null);
       this.updateDataRows(fetchParamJson);
     };
   
     handleChangeRowsPerPage = (event) => {
       const rowsPerPage = event.target.value;
       // Start at page 0 if we change the number of rows per page
-      let fetchParamJson = buildFetchRecipeParamJson(null, null, rowsPerPage, 0);
+      let fetchParamJson = buildFetchRecipeParamJson(null, null, rowsPerPage, 0, this.props.onlyFavorites, null, null);
       this.updateDataRows(fetchParamJson);
     };
 
@@ -203,6 +200,8 @@ class SortablePaginatedTable extends Component {
     rowsPerPage: PropTypes.number.isRequired,
     currentPage: PropTypes.number.isRequired,
     totalRows: PropTypes.number.isRequired,
+    searchBy: PropTypes.string,
+    searchKeywords: PropTypes.string,
     title: PropTypes.string.isRequired,
     removeLabel: PropTypes.string.isRequired,
     removeIcon: PropTypes.element.isRequired,

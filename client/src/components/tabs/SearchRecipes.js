@@ -35,7 +35,6 @@ const styles = theme => ({
 
 class SearchRecipes extends Component {
     state = {
-        searchBarValue: '',
         searchBy: SEARCH_ANY
     };
 
@@ -50,7 +49,7 @@ class SearchRecipes extends Component {
 
     handleSearchBarChangeEvent(value) {
         this.setState({
-          searchBarValue: value
+          searchKeywords: value
         });
     }
 
@@ -60,12 +59,15 @@ class SearchRecipes extends Component {
 
     handleSearchByChange = event => {
         this.setState({
-            [event.target.name]: event.target.value
+            searchBy: event.target.value
         });
      }
 
     render() {
         const { classes, showOnlyFavorites } = this.props;
+        const { searchBy, searchKeywords } = this.state;
+
+        let emptySearch = !searchKeywords || searchKeywords === '';
 
         return (
             <div>
@@ -96,7 +98,7 @@ class SearchRecipes extends Component {
                             Search by...
                         </InputLabel>
                         <Select
-                            value={this.state.searchBy}
+                            value={searchBy}
                             onChange={this.handleSearchByChange}
                             inputProps={{
                                 name: 'searchBy',
@@ -117,12 +119,16 @@ class SearchRecipes extends Component {
 
                 <SearchBar
                     className={classes.container}
-                    value={this.state.searchBarValue}
+                    value={searchKeywords}
                     onChange={this.handleSearchBarChange.bind('this')}
                     placeholder="Search for recipe"
                 />
 
-                <RecipeTable onlyFavorites={showOnlyFavorites || false} />
+                <RecipeTable
+                    onlyFavorites={showOnlyFavorites || false}
+                    searchBy={emptySearch ? undefined : searchBy}
+                    searchKeywords={searchKeywords}
+                />
 
             </div>
         );

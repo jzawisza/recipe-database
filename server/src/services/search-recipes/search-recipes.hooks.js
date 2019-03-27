@@ -1,5 +1,6 @@
 const errors = require('@feathersjs/errors');
 const qs = require('qs');
+const { checkWithSavedRecipesParam } = require('../helpers/check-params');
 
 const SEARCH_FIELDS = [
   { field: 'any', column: 'document_vector', isVector: true }, 
@@ -9,6 +10,19 @@ const SEARCH_FIELDS = [
   { field: 'tags', column: 'tags_vector', isVector: true },
   { field: 'title', column: 'title_vector', isVector: true }
 ];
+
+// TODO: get these column names programatically
+const SAVED_RECIPE_TABLE_COLUMNS = ['id', 'user_id', 'recipe_id', 'type', 'value'];
+
+// Helper function to convert snake case (e.g. recipe_id) to camel case (e.g. recipeId)
+// Taken from https://matthiashager.com/converting-snake-case-to-camel-case-object-keys-with-javascript
+const snakeToCamelCase = (s) => {
+  return s.replace(/([-_][a-z])/ig, ($1) => {
+    return $1.toUpperCase()
+      .replace('-', '')
+      .replace('_', '');
+  });
+};
 
 function buildSearchQuery(context) {
   let { keywords, field } = context.params.query;
@@ -25,25 +39,58 @@ function buildSearchQuery(context) {
     throw new errors.BadRequest(`${field} is not a valid search field.`);
   }
 
+  // Aliases to use in the query
+  const RECIPE_TABLE_ALIAS = 'r';
+  const SAVED_RECIPE_TABLE_ALIAS = 'sr';
+
   // Create the raw database query, starting with the WHERE clause
   let fieldInfo = SEARCH_FIELDS.filter(entry => entry.field === field)[0];
   let whereClause = 'WHERE ';
   if (fieldInfo.isVector) {
-    whereClause += `${fieldInfo.column} @@ to_tsquery(\'${keywords}\')`;
+    whereClause += `${fieldInfo.column} @@ plainto_tsquery(\'${keywords}\')`;
   }
   else {
     whereClause += `${fieldInfo.column} = ${keywords}`;
   }
 
-  // Support parameters from Feathers database API
   let metaParams = qs.parse(context.params.query);
+  let { withSavedRecipes } = metaParams;
+  checkWithSavedRecipesParam(metaParams);
+  // Add inner join clause to query if we need to filter by saved recipes
+  if (withSavedRecipes) {  
+    whereClause += ` AND ${RECIPE_TABLE_ALIAS}.id = ${SAVED_RECIPE_TABLE_ALIAS}.recipe_id AND ${SAVED_RECIPE_TABLE_ALIAS}.type = '${withSavedRecipes}' AND ${SAVED_RECIPE_TABLE_ALIAS}.value = 'true'`;
+  }
+
+  // Support parameters from Feathers database API
   let skipCount = (metaParams['$skip'] || 0);
   let limitCount = (metaParams['$limit'] || '10');
   let offsetClause = 'OFFSET ' + (metaParams['$skip'] || '0');
   let limitClause = 'LIMIT ' + (metaParams['$limit'] || 'ALL');
-  // Default to all fields if this parameter isn't specified
+
+  // Build SELECT clause, including saved_recipes columns if withSavedRecipes query parameter is specified
+  // If we include saved_recipes columns, format them as savedRecipe.<COLUMN_NAME> for compatibility with recipes endpoint
   // Use a Postgres window function to get the total count even if we're using LIMIT and OFFSET clauses
-  let columns = 'count(*) OVER() AS total, ' + (metaParams['$select'] ? metaParams['$select'].join(',') : '*');
+  let selectClause = 'SELECT count(*) OVER() AS total, ';
+  let fieldsToInclude = metaParams['$select'];
+  if (fieldsToInclude) {
+    let fieldsWithRecipeAlias = fieldsToInclude.map(field => {
+      return `${RECIPE_TABLE_ALIAS}.${field}`;
+    });
+    selectClause += fieldsWithRecipeAlias.join(',');
+  }
+  else {
+    selectClause += `${RECIPE_TABLE_ALIAS}.*`;
+  }
+  if (withSavedRecipes) {
+    SAVED_RECIPE_TABLE_COLUMNS.forEach(column => {
+      let camelCaseColumnName = snakeToCamelCase(column);
+      selectClause += `, ${SAVED_RECIPE_TABLE_ALIAS}.${column} AS "savedRecipe.${camelCaseColumnName}"`;
+    });
+  }
+  selectClause += ` FROM recipes AS ${RECIPE_TABLE_ALIAS}`;
+  if (withSavedRecipes) {
+    selectClause += `, saved_recipes AS ${SAVED_RECIPE_TABLE_ALIAS}`;
+  }
 
   let orderByClause = '';
   let sortInfo = metaParams['$sort'];
@@ -55,7 +102,7 @@ function buildSearchQuery(context) {
     }).join(',');  
   }
   
-  let selectStatement = `SELECT ${columns} FROM recipes ${whereClause} ${orderByClause} ${limitClause} ${offsetClause};`;
+  let selectStatement = `${selectClause} ${whereClause} ${orderByClause} ${limitClause} ${offsetClause};`;
 
   const sequelize = context.app.get('sequelizeClient');
   return sequelize.query(selectStatement).then(results => {
