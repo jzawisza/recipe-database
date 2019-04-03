@@ -4,6 +4,7 @@ const atob = require('atob');
 const CookingLightImporter = require('./importers/cooking-light-importer');
 const BonAppetitImporter = require('./importers/bon-appetit-importer');
 const EatingWellImporter = require ('./importers/eating-well-importer');
+const RealSimpleImporter = require ('./importers/real-simple-importer');
 
 function getImporterForUrl(url) {
   if(url.includes('cookinglight.com')) {
@@ -12,6 +13,8 @@ function getImporterForUrl(url) {
     return new BonAppetitImporter();
   } else if(url.includes('eatingwell.com')) {
     return new EatingWellImporter();
+  } else if(url.includes('realsimple.com')) {
+    return new RealSimpleImporter();
   } else {
     throw new errors.GeneralError(`No importer defined for URL ${url}`);
   }
@@ -31,11 +34,8 @@ class Service {
 
     await rp(url)
     .then( function(htmlString) {
-      // Query parameter values come in as strings, not booleans
-      let shouldImportNotes = (importNotes === 'true');
-
       let importer = getImporterForUrl(url);
-      recipeData = importer.import(url, htmlString, shouldImportNotes);
+      recipeData = importer.import(url, htmlString, importNotes);
 
       if(tags) {
         let tagArray = JSON.parse(atob(tags));

@@ -218,6 +218,7 @@ class ImportRecipe extends Component {
                     <li>Bon Appetit</li>
                     <li>Cooking Light</li>
                     <li>Eating Well</li>
+                    <li>Real Simple</li>
                 </ul>
 
 

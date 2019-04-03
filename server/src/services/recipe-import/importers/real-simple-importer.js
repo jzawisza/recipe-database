@@ -1,29 +1,23 @@
 const cheerio = require('cheerio');
 const { getSourceFromHtml, getJsonFromHtml, getTitleFromJson, getNumberOfServingsFromJson,
-  getIngredientsFromJson, getNotesFromJson } = require('./recipe-parsing');
+  getIngredientsFromJson, getPreparationFromHtml, getNotesFromJson } = require('./recipe-parsing');
 
-const BON_APPETIT_TITLE = 'Bon Appetit';
-const RECIPE_DATE_SELECTOR = 'div[class="MonthYear"]';
-const PREPARATION_KEY = 'recipeInstructions';
+const REAL_SIMPLE_TITLE = 'Real Simple';
+const RECIPE_DATE_SELECTOR = 'span[class="recipe-date"]';
 const SERVES_REGEX = /(\d+)/;
 
-class BonAppetitImporter {
+class RealSimpleImporter{
   import(url, htmlString, shouldImportNotes) {
     const $ = cheerio.load(htmlString);
 
-    let source = getSourceFromHtml($, RECIPE_DATE_SELECTOR, BON_APPETIT_TITLE);
-    let recipeJson = getJsonFromHtml($);
+    let source = getSourceFromHtml($, RECIPE_DATE_SELECTOR, REAL_SIMPLE_TITLE);
+
+    let recipeJson = getJsonFromHtml($)[0];
     let title = getTitleFromJson(recipeJson);
     let serves = getNumberOfServingsFromJson(recipeJson, SERVES_REGEX);
     let ingredients = getIngredientsFromJson(recipeJson);
+    let preparation = getPreparationFromHtml($);
     let notes = getNotesFromJson(recipeJson, shouldImportNotes);
-
-    let preparation = '';
-    let stepCount = 1;
-    recipeJson[PREPARATION_KEY].forEach(element => {
-      preparation += `${stepCount}. ${element.text}\n\n`;
-      stepCount++;
-    });
 
     // Calories per serving is theoretically supported, but is not included
     // in any recipes I can find
@@ -32,7 +26,7 @@ class BonAppetitImporter {
 }
 
 module.exports = function (options) {
-  return new BonAppetitImporter(options);
+  return new RealSimpleImporter(options);
 };
-      
-module.exports.BonAppetitImporter = BonAppetitImporter;
+  
+module.exports.RealSimpleImporter = RealSimpleImporter;
