@@ -31,19 +31,10 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 --
--- Sequences
---
-CREATE SEQUENCE recipe_id_seq;
-CREATE SEQUENCE recipe_link_id_seq;
-CREATE SEQUENCE tag_id_seq;
-CREATE SEQUENCE user_id_seq;
-CREATE SEQUENCE saved_recipe_id_seq;
-
---
 -- Tables
 --
 CREATE TABLE recipes (
-      id bigint NOT NULL DEFAULT NEXTVAL('recipe_id_seq') CONSTRAINT recipe_pkey PRIMARY KEY,
+      id bigserial NOT NULL CONSTRAINT recipe_pkey PRIMARY KEY,
       source text,
       title text NOT NULL UNIQUE,
       ingredients text NOT NULL,
@@ -62,19 +53,19 @@ CREATE TABLE recipes (
 );
 
 CREATE TABLE recipe_links (
-      id bigint NOT NULL DEFAULT NEXTVAL('recipe_link_id_seq') CONSTRAINT recipe_link_pkey PRIMARY KEY,
+      id bigserial NOT NULL CONSTRAINT recipe_link_pkey PRIMARY KEY,
       source_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
       dest_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
       UNIQUE(source_id, dest_id)
 );
 
 CREATE TABLE tags (
-      id bigint NOT NULL DEFAULT NEXTVAL('tag_id_seq') CONSTRAINT tags_pkey PRIMARY KEY,
+      id bigserial NOT NULL CONSTRAINT tags_pkey PRIMARY KEY,
       name text NOT NULL UNIQUE
 );
 
 CREATE TABLE users (
-      id bigint NOT NULL DEFAULT NEXTVAL('user_id_seq') CONSTRAINT user_pkey PRIMARY KEY,
+      id bigserial NOT NULL CONSTRAINT user_pkey PRIMARY KEY,
       username text NOT NULL UNIQUE,
       display_name text NOT NULL
 );
@@ -82,7 +73,7 @@ CREATE TABLE users (
 CREATE TYPE saved_recipe_type AS ENUM('FAVORITES', 'MEAL_PLANNER');
 
 CREATE TABLE saved_recipes (
-      id bigint NOT NULL DEFAULT NEXTVAL('saved_recipe_id_seq') CONSTRAINT saved_recipes_pkey PRIMARY KEY,
+      id bigserial NOT NULL CONSTRAINT saved_recipes_pkey PRIMARY KEY,
       user_id bigint NOT NULL,
       recipe_id bigint NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
       type saved_recipe_type NOT NULL,
@@ -98,15 +89,6 @@ CREATE INDEX idx_fts_source_vector ON recipes USING gin(source_vector);
 CREATE INDEX idx_fts_title_vector ON recipes USING gin(title_vector);
 CREATE INDEX idx_fts_ingredients_vector ON recipes USING gin(ingredients_vector);
 CREATE INDEX idx_fts_tags_vector ON recipes USING gin(tags_vector);
-
---
--- Sequence ownership
---
-ALTER SEQUENCE recipe_id_seq OWNED BY recipes.id;
-ALTER SEQUENCE recipe_link_id_seq OWNED BY recipe_links.id;
-ALTER SEQUENCE tag_id_seq OWNED BY tags.id;
-ALTER SEQUENCE user_id_seq OWNED BY users.id;
-ALTER SEQUENCE saved_recipe_id_seq OWNED BY saved_recipes.id;
 
 --
 -- Default user
