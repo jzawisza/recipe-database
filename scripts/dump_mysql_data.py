@@ -38,17 +38,6 @@ try:
         magazine_date_regex = r"(January|February|March|April|May|June|July|August|September|October|November|December)\s\d+"
 
         for (source, title, ingredients, preparation, notes, serves, calories_per_serving, recipe_type) in cursor:
-            # Replace newlines with \n in multiline fields
-            newIngredients = ingredients
-            newPreparation = preparation
-            newNotes = notes
-            if ingredients is not None:
-                newIngredients = ingredients.replace('\r\n', '\\n')
-            if preparation is not None:
-                newPreparation = preparation.replace('\r\n', '\\n')
-            if notes is not None:
-                newNotes = notes.replace('\r\n', '\\n')
-
             # Check source for magazine with date included: if there is a date, use that for the creation and modification dates
             # so that searching by those dates makes sense in the application.
             # If there's no date, use the current date for those values
@@ -62,7 +51,7 @@ try:
                     print(f'Could not parse magazine date {magazineDateStr} for recipe {title}')
             modifiedTime = creationTime
 
-            output_fields = [ source, title, newIngredients, newPreparation, newNotes, serves, calories_per_serving, creationTime, modifiedTime ]
+            output_fields = [ source, title, ingredients, preparation, notes, serves, calories_per_serving, creationTime, modifiedTime ]
             dump_writer.writerow(output_fields)
             if recipe_type in TYPES_TO_CONVERT_TO_TAGS:
                 tag_types_found.add(recipe_type)
