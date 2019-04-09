@@ -19,7 +19,7 @@ import ReviewRecipes from './components/tabs/ReviewRecipes';
 import SearchRecipes from './components/tabs/SearchRecipes';
 import ViewRecipe from './components/tabs/ViewRecipe';
 
-export const MAIN_TITLE = 'Recipe Database 2.0';
+export const MAIN_TITLE = 'Zareda';
 
 // TODO: add multi-user support
 export const DEFAULT_USER_ID = 0;
@@ -60,7 +60,7 @@ class App extends Component {
       <Router history={history}>
       <div className={classes.root}>
         
-        <Typography variant="title" align="center" gutterBottom>Recipe Database 2.0</Typography>
+        <Typography variant="title" align="center" gutterBottom>{MAIN_TITLE}</Typography>
 
         <AppBar position="static" color="default">
           <Tabs
