@@ -26,3 +26,13 @@ These files will serve as input to the following steps.
 Use a command similar to the following to import the MySQL data into PostgreSQL:
 
     psql -U postgres -d RECIPEDB -c "COPY recipes(source, title, ingredients, preparation, notes, serves, calories_per_serving, creation_time, modified_time) FROM '/path/to/recipe_database_dump.csv' CSV;"
+
+## Post-Processing The Data Dump
+After importing the data into PostgreSQL, run the following scripts to add tag and recipe link information to the data.
+
+These scripts can overwrite existing data, so make sure you run them **immediately after the data is first imported**.
+
+Note that each script takes the same `-s`, `-u`, and `-p` parameters as described above.
+
+### Add Tag Information
+     python3 insert_tags.py -u postgres -p -t /path/to/tags.txt -m /path/to/tag_mapping.csv

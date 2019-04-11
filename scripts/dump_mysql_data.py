@@ -19,7 +19,7 @@ parser.add_argument('-p', '--password', help='Prompt for the password to connect
 
 args = parser.parse_args()
 
-dbPassword = ''
+db_password = ''
 if args.password:
     db_password = getpass.getpass()
 
