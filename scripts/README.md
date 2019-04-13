@@ -34,5 +34,13 @@ These scripts can overwrite existing data, so make sure you run them **immediate
 
 Note that each script takes the same `-s`, `-u`, and `-p` parameters as described above.
 
+To run these scripts, install the following Python packages:
+
+* [psycopg2](http://initd.org/psycopg/)
+* [progress](https://pypi.org/project/progress/)
+
 ### Add Tag Information
-     python3 insert_tags.py -u postgres -p -t /path/to/tags.txt -m /path/to/tag_mapping.csv
+    python3 insert_tags.py -u postgres -p -t /path/to/tags.txt -m /path/to/tag_mapping.csv
+
+### Create Recipe Links
+    python3 create_recipe_links.py -u postgres -p
