@@ -9,6 +9,8 @@ import {
     FETCH_FAVORITES,
     FETCH_MEAL_PLANNER,
     TOGGLE_SEARCH_TAB_ONLY_FAVORITES,
+    SET_SEARCH_BY,
+    SET_SEARCH_KEYWORDS,
     CLEAR_FAVORITES_CACHE,
     CLEAR_RECIPES_CACHE,
     CLEAR_MEAL_PLANNER_CACHE
@@ -326,4 +328,22 @@ export function clearMealPlannerCache() {
     return {
         type: CLEAR_MEAL_PLANNER_CACHE
     };
+}
+
+export function setSearchBy(searchBy) {
+    return {
+        type: SET_SEARCH_BY,
+        payload: { 
+            searchBy: searchBy
+        }
+    }
+}
+
+export function setSearchKeywords(searchKeywords) {
+    return {
+        type: SET_SEARCH_KEYWORDS,
+        payload: { 
+            searchKeywords: searchKeywords
+        }
+    }
 }

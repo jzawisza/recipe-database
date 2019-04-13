@@ -15,9 +15,7 @@ import RecipeTable from '../tables/RecipeTable';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { MAIN_TITLE } from '../../App';
-import { toggleSearchTabOnlyFavorites } from '../../actions/actions';
-
-const SEARCH_ANY = 'any';
+import { toggleSearchTabOnlyFavorites, setSearchBy, setSearchKeywords } from '../../actions/actions';
 
 const styles = theme => ({
     container: {
@@ -34,10 +32,6 @@ const styles = theme => ({
   });
 
 class SearchRecipes extends Component {
-    state = {
-        searchBy: SEARCH_ANY
-    };
-
     constructor(props) {
         super(props);
         this.handleSearchBarChangeEvent = debounce(500, this.handleSearchBarChangeEvent);
@@ -48,9 +42,7 @@ class SearchRecipes extends Component {
     }
 
     handleSearchBarChangeEvent(value) {
-        this.setState({
-          searchKeywords: value
-        });
+        this.props.setSearchKeywords(value);
     }
 
     handleOnlyFavoritesChange = event => {
@@ -58,14 +50,11 @@ class SearchRecipes extends Component {
     }
 
     handleSearchByChange = event => {
-        this.setState({
-            searchBy: event.target.value
-        });
+        this.props.setSearchBy(event.target.value);
      }
 
     render() {
-        const { classes, showOnlyFavorites } = this.props;
-        const { searchBy, searchKeywords } = this.state;
+        const { classes, showOnlyFavorites, searchBy, searchKeywords } = this.props;
 
         let emptySearch = !searchKeywords || searchKeywords === '';
 
@@ -107,7 +96,7 @@ class SearchRecipes extends Component {
                             displayEmpty
                             className={classes.selectEmpty}
                         >
-                            <MenuItem value={SEARCH_ANY}>any</MenuItem>
+                            <MenuItem value={'any'}>any</MenuItem>
                             <MenuItem value={'title'}>title</MenuItem>
                             <MenuItem value={'source'}>source</MenuItem>
                             <MenuItem value={'tags'}>tags</MenuItem>
@@ -138,13 +127,17 @@ class SearchRecipes extends Component {
 SearchRecipes.propTypes = {
     classes: PropTypes.object.isRequired,
     showOnlyFavorites: PropTypes.bool,
-    toggleSearchTabOnlyFavorites: PropTypes.func.isRequired
+    searchBy: PropTypes.string,
+    searchKeywords: PropTypes.string,
+    toggleSearchTabOnlyFavorites: PropTypes.func.isRequired,
+    setSearchBy: PropTypes.func.isRequired,
+    setSearchKeywords: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state) => {
-    const { showOnlyFavorites } = state.searchTabOnlyFavorites;
-    return { showOnlyFavorites };
+    const { showOnlyFavorites, searchBy, searchKeywords } = state.searchTab;
+    return { showOnlyFavorites, searchBy, searchKeywords };
 };
 
-export default connect(mapStateToProps, { toggleSearchTabOnlyFavorites })(withStyles(styles, { withTheme: true })(SearchRecipes));
+export default connect(mapStateToProps, { toggleSearchTabOnlyFavorites, setSearchBy, setSearchKeywords })(withStyles(styles, { withTheme: true })(SearchRecipes));
 

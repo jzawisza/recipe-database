@@ -2,7 +2,7 @@ import { combineReducers } from 'redux';
 import { manageTags } from './tags';
 import { editRecipe } from './editRecipe';
 import { fetchRecipes, fetchFavorites, fetchMealPlannerRecipes } from './fetchRecipes';
-import { searchTabOnlyFavorites } from './searchTab';
+import { searchTab } from './searchTab';
 
 const rootReducer = combineReducers({
     manageTags,
@@ -10,7 +10,7 @@ const rootReducer = combineReducers({
     fetchRecipes,
     fetchFavorites,
     fetchMealPlannerRecipes,
-    searchTabOnlyFavorites
+    searchTab
 });
 
 export default rootReducer;
