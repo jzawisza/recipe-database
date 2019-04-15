@@ -18,6 +18,7 @@ import ImportRecipe from './components/tabs/ImportRecipe';
 import ReviewRecipes from './components/tabs/ReviewRecipes';
 import SearchRecipes from './components/tabs/SearchRecipes';
 import ViewRecipe from './components/tabs/ViewRecipe';
+import logo from './logo-via-logohub.png';
 
 export const MAIN_TITLE = 'Zareda';
 
@@ -60,7 +61,9 @@ class App extends Component {
       <Router history={history}>
       <div className={classes.root}>
         
-        <Typography variant="title" align="center" gutterBottom>{MAIN_TITLE}</Typography>
+        <Typography variant="title" align="center" gutterBottom>
+          <img src={logo} alt={MAIN_TITLE} height={64} width={292} />
+        </Typography>
 
         <AppBar position="static" color="default">
           <Tabs
