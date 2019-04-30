@@ -1,11 +1,18 @@
 import fetch from 'cross-fetch';
 
-const SERVER_URL = 'http://localhost:3030/';
+// Look up server URL from configuration settings
+// This requires a default .env file at the project root
+function getServerUrl() {
+    let host = process.env.REACT_APP_SERVER_HOST;
+    let port = process.env.REACT_APP_SERVER_PORT;
+    return `${host}:${port}`;
+}
 
 // Issue a HTTP request and return a promise representing the
 // JSON returned by that request
 async function doHttpRequest(url, options = {}) {
-    let response = await fetch(`${SERVER_URL}${url}`, options);
+    let serverUrl = getServerUrl();
+    let response = await fetch(`${serverUrl}/${url}`, options);
     return await response.json();
 }
 

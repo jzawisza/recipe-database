@@ -2,6 +2,7 @@
   "name": "recipe-database",
   "version": "2.0.0",
   "private": true,
+  "homepage": "http://54.191.84.216",
   "dependencies": {
     "@material-ui/core": "^1.4.0",
     "@material-ui/icons": "^1.1.0",

@@ -1,4 +1,4 @@
 {
-  "host": "recipedb-app.feathersjs.com",
-  "port": "PORT"
+  "host": "http://54.191.84.216",
+  "port": "3030"
 }
