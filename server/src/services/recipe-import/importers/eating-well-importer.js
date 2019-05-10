@@ -1,5 +1,5 @@
 const cheerio = require('cheerio');
-const errors = require('@feathersjs/errors');
+const { getIngredientsFromHtml, getPreparationFromStepArray } = require('./recipe-parsing');
 
 const TITLE_SELECTOR = 'h3[class="recipeDetailHeader hideOnTabletToDesktop"]';
 const SOURCE_SPAN_SELECTOR = 'span[class="submitterDisplayNameIntro"]';
@@ -19,20 +19,9 @@ class EatingWellImporter {
         let source = $(SOURCE_SPAN_SELECTOR).next('span').text().trim();
         let serves = $(SERVES_SPAN_SELECTOR).children('span').text().trim().match(SERVES_REGEX)[1];
         let caloriesPerServing = $(CALORIES_SELECTOR).text().trim().match(CALORIES_REGEX)[1];
-        let ingredients = $(INGREDIENTS_SELECTOR).map(function(index, element) {
-            return $(this).text();
-        }).get().join('\n');
+        let ingredients = getIngredientsFromHtml($, INGREDIENTS_SELECTOR);
 
-        let stepCount = 1;
-        let preparation = $(PREPARATION_SELECTOR).map(function(index, element) {
-            let elementText = $(this).text();
-            if(elementText) {
-                let prepStep = `${stepCount}. ${elementText}`;
-                stepCount++;
-                return prepStep;
-            }
-            return null;
-        }).get().join('\n');
+        let preparation = getPreparationFromStepArray($(PREPARATION_SELECTOR), $);
 
         let notes = null;
         if(shouldImportNotes) {

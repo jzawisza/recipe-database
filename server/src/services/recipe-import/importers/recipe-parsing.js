@@ -71,3 +71,21 @@ module.exports.getPreparationFromHtml = function(htmlObj) {
 
   return preparation;
 };
+
+module.exports.getPreparationFromStepArray = function(stepArray, htmlObj, stepCount = 1) {
+  return stepArray.map(function(index, element) {
+    let elementText = htmlObj(this).text();
+    if(elementText) {
+        let prepStep = `${stepCount}. ${elementText}`;
+        stepCount++;
+        return prepStep;
+    }
+    return null;
+}).get().join('\n');
+};
+
+module.exports.getIngredientsFromHtml = function(htmlObj, ingredientsSelector) {
+  return htmlObj(ingredientsSelector).map(function(index, element) {
+    return htmlObj(this).text();
+}).get().join('\n');
+}
