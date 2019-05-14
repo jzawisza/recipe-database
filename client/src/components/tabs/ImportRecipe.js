@@ -219,6 +219,7 @@ class ImportRecipe extends Component {
                     <li><a href="https://cookinglight.com" target="_blank" rel="noopener noreferrer">Cooking Light</a></li>
                     <li><a href="http://eatingwell.com" target="_blank" rel="noopener noreferrer">Eating Well</a></li>
                     <li><a href="https://realsimple.com" target="_blank" rel="noopener noreferrer">Real Simple</a></li>
+                    <li><a href="https://skinnytaste.com" target="_blank" rel="noopener noreferrer">Skinny Taste</a></li>
                     <li><a href="https://smittenkitchen.com" target="_blank" rel="noopener noreferrer">Smitten Kitchen</a> (2017 and newer)</li>
                 </ul>
 
