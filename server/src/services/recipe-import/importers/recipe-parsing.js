@@ -9,6 +9,8 @@ const INGREDIENTS_KEY = 'recipeIngredient';
 const NOTES_KEY = 'description';
 const SERVES_KEY = 'recipeYield';
 const TITLE_KEY = 'name';
+const NUTRITION_KEY = 'nutrition';
+const CALORIES_KEY = 'calories';
 
 //
 // JSON parsing methods
@@ -33,14 +35,24 @@ module.exports.getNotesFromJson = function(recipeJson, shouldImportNotes) {
   return shouldImportNotes ? recipeJson[NOTES_KEY] : undefined;
 };
 
+module.exports.getCaloriesPerServingFromJson = function(recipeJson) {
+  let nutritionObj = recipeJson[NUTRITION_KEY];
+    if (!nutritionObj) {
+      throw new errors.GeneralError('Error getting nutrition information from JSON');
+    }
+    return caloriesPerServing = nutritionObj[CALORIES_KEY];
+}
+
 
 //
 // HTML parsing methods
 //
 
 // Extract the recipe JSON object from the HTML
-module.exports.getJsonFromHtml = function(htmlObj) {
-  let recipeJson = JSON.parse(htmlObj(RECIPE_JSON_SELECTOR).html().trim());
+module.exports.getJsonFromHtml = function(htmlObj, jsonPos = 0) {
+  let recipeJson = null;
+  let recipeSelector = jsonPos ? htmlObj(RECIPE_JSON_SELECTOR).eq(jsonPos) : htmlObj(RECIPE_JSON_SELECTOR);
+  recipeJson = JSON.parse(recipeSelector.html().trim());
   if (!recipeJson) {
     throw new errors.GeneralError('Error getting recipe JSON');
   }
@@ -81,7 +93,7 @@ module.exports.getPreparationFromStepArray = function(stepArray, htmlObj, stepCo
         return prepStep;
     }
     return null;
-}).get().join('\n');
+}).get().join('\n\n');
 };
 
 module.exports.getIngredientsFromHtml = function(htmlObj, ingredientsSelector) {

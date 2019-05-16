@@ -1,10 +1,8 @@
 const cheerio = require('cheerio');
 const { getJsonFromHtml, getTitleFromJson, getNumberOfServingsFromJson,
-  getIngredientsFromJson, getPreparationFromStepArray, getNotesFromJson } = require('./recipe-parsing');
+  getIngredientsFromJson, getPreparationFromStepArray, getNotesFromJson, getCaloriesPerServingFromJson } = require('./recipe-parsing');
 
 const SERVES_REGEX = /(\d+)/;
-const NUTRITION_KEY = 'nutrition';
-const CALORIES_KEY = 'calories';
 const PREPARATION_SELECTOR = 'div[class="instructions"] li'
 
 class SkinnyTasteImporter{
@@ -14,7 +12,7 @@ class SkinnyTasteImporter{
     let recipeJson = getJsonFromHtml($);
     let title = getTitleFromJson(recipeJson);
     let serves = getNumberOfServingsFromJson(recipeJson, SERVES_REGEX);
-    let caloriesPerServing = recipeJson[NUTRITION_KEY][CALORIES_KEY];
+    let caloriesPerServing = getCaloriesPerServingFromJson(recipeJson);
     let ingredients = getIngredientsFromJson(recipeJson);
     let preparation = getPreparationFromStepArray($(PREPARATION_SELECTOR), $);
     let notes = getNotesFromJson(recipeJson, shouldImportNotes);

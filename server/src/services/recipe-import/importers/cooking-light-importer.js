@@ -2,13 +2,11 @@ const cheerio = require('cheerio');
 const URL = require('url').URL;
 const errors = require('@feathersjs/errors');
 const { getSourceFromHtml, getJsonFromHtml, getNumberOfServingsFromJson,
-  getIngredientsFromJson, getPreparationFromHtml, getNotesFromJson } = require('./recipe-parsing');
+  getIngredientsFromJson, getPreparationFromHtml, getNotesFromJson, getCaloriesPerServingFromJson } = require('./recipe-parsing');
 
 const COOKING_LIGHT_TITLE = 'Cooking Light';
 const RECIPE_DATE_SELECTOR = 'span[class="recipe-date"]';
 const TYPE_KEY = '@type';
-const NUTRITION_KEY = 'nutrition';
-const CALORIES_KEY = 'calories';
 const TYPE_VALUE_RECIPE = 'Recipe';
 const SERVES_REGEX = /Serves (\d+)/;
 
@@ -29,12 +27,7 @@ class CookingLightImporter {
     let ingredients = getIngredientsFromJson(recipeJson);
     let preparation = getPreparationFromHtml($);
     let notes = getNotesFromJson(recipeJson, shouldImportNotes);
-
-    let nutritionObj = recipeJson[NUTRITION_KEY];
-    if (!nutritionObj) {
-      throw new errors.GeneralError('Error getting nutrition information from JSON');
-    }
-    let caloriesPerServing = nutritionObj[CALORIES_KEY];
+    let caloriesPerServing = getCaloriesPerServingFromJson(recipeJson);
 
     return { source, title, ingredients, preparation, serves, caloriesPerServing, notes };
   }

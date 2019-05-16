@@ -7,6 +7,7 @@ const EatingWellImporter = require ('./importers/eating-well-importer');
 const RealSimpleImporter = require ('./importers/real-simple-importer');
 const SkinnyTasteImporter = require('./importers/skinny-taste-importer');
 const SmittenKitchenImporter = require('./importers/smitten-kitchen-importer');
+const PinchOfYumImporter = require('./importers/pinch-of-yum-importer');
 
 function getImporterForUrl(url) {
   if(url.includes('cookinglight.com')) {
@@ -21,7 +22,9 @@ function getImporterForUrl(url) {
     return new SmittenKitchenImporter();
   } else if(url.includes('skinnytaste.com')) {
     return new SkinnyTasteImporter();
-  } else {
+  } else if(url.includes('pinchofyum.com')) {
+    return new PinchOfYumImporter();
+  }else {
     throw new errors.GeneralError(`No importer defined for URL ${url}`);
   }
 }
