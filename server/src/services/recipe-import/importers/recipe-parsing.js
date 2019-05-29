@@ -69,19 +69,12 @@ module.exports.getSourceFromHtml = function(htmlObj, magazineDateSelector, magaz
 };
 
 // Several web sites have the preparation in the JSON, but as a single paragraph:
-// fetching it from the HTML allows us to break it into separate paragraphs
+// fetching it from the HTML allows us to break it into separate paragraphs.
+//
+// This method supports a common format for representing the recipe preparation in HTML:
+// for other formats, the getPreparationFromStepArray method should be used directly.
 module.exports.getPreparationFromHtml = function(htmlObj) {
-  let preparation = '';
-  let stepCount = 1;
-  htmlObj(PREP_STEP_SELECTOR).each( function() {
-    preparation += `${stepCount}. ${htmlObj(this).text()}\n\n`;
-    stepCount++;
-  });
-  // Remove the trailing newlines
-  let prepLen = preparation.length;
-  preparation = preparation.substring(0, prepLen - 2);
-
-  return preparation;
+  return module.exports.getPreparationFromStepArray(htmlObj(PREP_STEP_SELECTOR), htmlObj, 1);
 };
 
 module.exports.getPreparationFromStepArray = function(stepArray, htmlObj, stepCount = 1) {
