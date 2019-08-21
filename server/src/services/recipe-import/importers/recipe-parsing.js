@@ -13,6 +13,18 @@ const NUTRITION_KEY = 'nutrition';
 const CALORIES_KEY = 'calories';
 
 //
+// Helper methods
+//
+
+// Given a string and a regular expression with a grouping,
+// return the value of the parenthesized group, or undefined if the regex doesn't match
+function parseRegex(strToParse, regex) {
+  let regexMatch = strToParse.match(regex);
+  // Array element 1 contains the value of the parenthesized group in the regex
+  return regexMatch ? regexMatch[1] : undefined;
+}
+
+//
 // JSON parsing methods
 //
 module.exports.getTitleFromJson = function(recipeJson) {
@@ -20,9 +32,7 @@ module.exports.getTitleFromJson = function(recipeJson) {
 };
 
 module.exports.getNumberOfServingsFromJson = function(recipeJson, servesRegex) {
-  // Array element 1 contains the value of the parenthesized group in the regex
-  let regexMatch = recipeJson[SERVES_KEY].match(servesRegex);
-  return regexMatch ? regexMatch[1] : undefined;
+  return parseRegex(recipeJson[SERVES_KEY], servesRegex);
 };
 
 module.exports.getIngredientsFromJson = function(recipeJson) {
@@ -35,12 +45,13 @@ module.exports.getNotesFromJson = function(recipeJson, shouldImportNotes) {
   return shouldImportNotes ? recipeJson[NOTES_KEY] : undefined;
 };
 
-module.exports.getCaloriesPerServingFromJson = function(recipeJson) {
+module.exports.getCaloriesPerServingFromJson = function(recipeJson, caloriesRegex) {
   let nutritionObj = recipeJson[NUTRITION_KEY];
     if (!nutritionObj) {
       throw new errors.GeneralError('Error getting nutrition information from JSON');
     }
-    return caloriesPerServing = nutritionObj[CALORIES_KEY];
+    let caloriesPerServing = nutritionObj[CALORIES_KEY];
+    return caloriesRegex ? parseRegex(caloriesPerServing, caloriesRegex) : caloriesPerServing;
 }
 
 

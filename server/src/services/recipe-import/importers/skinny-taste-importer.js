@@ -3,6 +3,7 @@ const { getJsonFromHtml, getTitleFromJson, getNumberOfServingsFromJson,
   getIngredientsFromJson, getPreparationFromStepArray, getNotesFromJson, getCaloriesPerServingFromJson } = require('./recipe-parsing');
 
 const SERVES_REGEX = /(\d+)/;
+const CALORIES_REGEX = /(\d+) kcal/;
 const PREPARATION_SELECTOR = 'div[class="instructions"] li'
 
 class SkinnyTasteImporter{
@@ -12,7 +13,7 @@ class SkinnyTasteImporter{
     let recipeJson = getJsonFromHtml($);
     let title = getTitleFromJson(recipeJson);
     let serves = getNumberOfServingsFromJson(recipeJson, SERVES_REGEX);
-    let caloriesPerServing = getCaloriesPerServingFromJson(recipeJson);
+    let caloriesPerServing = getCaloriesPerServingFromJson(recipeJson, CALORIES_REGEX);
     let ingredients = getIngredientsFromJson(recipeJson);
     let preparation = getPreparationFromStepArray($(PREPARATION_SELECTOR), $);
     let notes = getNotesFromJson(recipeJson, shouldImportNotes);
