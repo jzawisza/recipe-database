@@ -1,10 +1,9 @@
 const cheerio = require('cheerio');
 const { getSourceFromHtml, getJsonFromHtml, getTitleFromJson, getNumberOfServingsFromJson,
-  getIngredientsFromJson, getNotesFromJson } = require('./recipe-parsing');
+  getIngredientsFromJson, getPreparationFromJson, getNotesFromJson } = require('./recipe-parsing');
 
 const BON_APPETIT_TITLE = 'Bon Appetit';
 const RECIPE_DATE_SELECTOR = 'div[class="MonthYear"]';
-const PREPARATION_KEY = 'recipeInstructions';
 const SERVES_REGEX = /(\d+)/;
 
 class BonAppetitImporter {
@@ -17,13 +16,7 @@ class BonAppetitImporter {
     let serves = getNumberOfServingsFromJson(recipeJson, SERVES_REGEX);
     let ingredients = getIngredientsFromJson(recipeJson);
     let notes = getNotesFromJson(recipeJson, shouldImportNotes);
-
-    let preparation = '';
-    let stepCount = 1;
-    recipeJson[PREPARATION_KEY].forEach(element => {
-      preparation += `${stepCount}. ${element.text}\n\n`;
-      stepCount++;
-    });
+    let preparation = getPreparationFromJson(recipeJson);
 
     // Calories per serving is theoretically supported, but is not included
     // in any recipes I can find

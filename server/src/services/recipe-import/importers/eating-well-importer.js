@@ -1,31 +1,30 @@
 const cheerio = require('cheerio');
-const { getIngredientsFromHtml, getPreparationFromStepArray } = require('./recipe-parsing');
+const { getJsonFromHtmlRecipeType, getTitleFromJson, getIngredientsFromJson,
+    getCaloriesPerServingFromJson, getPreparationFromJson } = require('./recipe-parsing');
 
-const TITLE_SELECTOR = 'h3[class="recipeDetailHeader hideOnTabletToDesktop"]';
-const SOURCE_SPAN_SELECTOR = 'span[class="submitterDisplayNameIntro"]';
-const SERVES_SPAN_SELECTOR = 'span[class="servingsCount"]';
-const CALORIES_SELECTOR = 'span[itemprop="calories"]';
-const INGREDIENTS_SELECTOR = 'span[itemprop="ingredients"]';
-const PREPARATION_SELECTOR = 'li[class="step"]';
-const NOTES_DIV_SELECTOR = 'div[class="recipeSubmitter"]';
-const SERVES_REGEX = /(\d+) servings/;
+const SERVES_DIV_SELECTOR = 'div[class="recipe-shopper-wrapper"]';
+const SERVES_SECTION_SELECTOR = '.recipe-ingredients-new';
+const SERVES_DATA_ELEMENT = 'servings';
+const RECIPE_SOURCE_SELECTOR = '.recipe-source';
+const NOTES_SELECTOR = '.recipe-note';
+const SOURCE_REGEX = /Source: (.+)/;
 const CALORIES_REGEX = /(\d+) calories/;
 
 class EatingWellImporter {
     import(url, htmlString, shouldImportNotes) {
         const $ = cheerio.load(htmlString);
 
-        let title = $(TITLE_SELECTOR).eq(0).text().trim();
-        let source = $(SOURCE_SPAN_SELECTOR).next('span').text().trim();
-        let serves = $(SERVES_SPAN_SELECTOR).children('span').text().trim().match(SERVES_REGEX)[1];
-        let caloriesPerServing = $(CALORIES_SELECTOR).text().trim().match(CALORIES_REGEX)[1];
-        let ingredients = getIngredientsFromHtml($, INGREDIENTS_SELECTOR);
-
-        let preparation = getPreparationFromStepArray($(PREPARATION_SELECTOR), $);
+        let recipeJson = getJsonFromHtmlRecipeType($);
+        let title = getTitleFromJson(recipeJson);
+        let source = $(RECIPE_SOURCE_SELECTOR).text().trim().match(SOURCE_REGEX)[1];
+        let serves = $(SERVES_DIV_SELECTOR).children(SERVES_SECTION_SELECTOR).data(SERVES_DATA_ELEMENT);
+        let caloriesPerServing = getCaloriesPerServingFromJson(recipeJson, CALORIES_REGEX);
+        let ingredients = getIngredientsFromJson(recipeJson);
+        let preparation = getPreparationFromJson(recipeJson);
 
         let notes = null;
         if(shouldImportNotes) {
-            notes = $(NOTES_DIV_SELECTOR).children('p').text().trim();
+            notes = $(NOTES_SELECTOR).children('p').text().trim();
         }
 
         return { source, title, ingredients, preparation, serves, caloriesPerServing, notes };

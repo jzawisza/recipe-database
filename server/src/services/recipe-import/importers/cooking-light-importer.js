@@ -1,13 +1,11 @@
 const cheerio = require('cheerio');
 const URL = require('url').URL;
 const errors = require('@feathersjs/errors');
-const { getSourceFromHtml, getJsonFromHtml, getNumberOfServingsFromJson,
+const { getSourceFromHtml, getJsonFromHtmlRecipeType, getNumberOfServingsFromJson,
   getIngredientsFromJson, getPreparationFromHtml, getNotesFromJson, getCaloriesPerServingFromJson } = require('./recipe-parsing');
 
 const COOKING_LIGHT_TITLE = 'Cooking Light';
 const RECIPE_DATE_SELECTOR = 'span[class="recipe-date"]';
-const TYPE_KEY = '@type';
-const TYPE_VALUE_RECIPE = 'Recipe';
 const SERVES_REGEX = /Serves (\d+)/;
 
 class CookingLightImporter {
@@ -22,7 +20,7 @@ class CookingLightImporter {
     const $ = cheerio.load(htmlString);
 
     let source = getSourceFromHtml($, RECIPE_DATE_SELECTOR, COOKING_LIGHT_TITLE);
-    let recipeJson = getJsonFromHtml($).filter(item => item[TYPE_KEY] === TYPE_VALUE_RECIPE)[0];
+    let recipeJson = getJsonFromHtmlRecipeType($);
     let serves = getNumberOfServingsFromJson(recipeJson, SERVES_REGEX);
     let ingredients = getIngredientsFromJson(recipeJson);
     let preparation = getPreparationFromHtml($);
