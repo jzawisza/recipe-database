@@ -101,7 +101,7 @@ class TagBar extends Component {
         // so that we can't add duplicate tags
         let notInParams = '';
         this.state.currentTags.forEach(existingTag => {
-          notInParams += `&id[$notIn][]=${existingTag.id}`;
+          notInParams += `&id[$nin][]=${existingTag.id}`;
         });
         
         doGet(`tags?name[$like]=${inputValue}%${notInParams}`).then(responseJson => {
