@@ -26,7 +26,7 @@ import TagBar from './TagBar';
 import RecipeLinks from './RecipeLinks';
 import { MAIN_TITLE, DEFAULT_USER_ID, FAVORITE_TYPE_STR, MEAL_PLANNER_TYPE_STR } from '../App';
 import { doGet, isErrorResponse, getErrMsg, doPost, doPatch } from '../utils/AjaxUtils';
-import { modifyRecipe, clearRecipe } from '../actions/actions';
+import { modifyRecipe, clearRecipe, clearFavoritesCache, clearMealPlannerCache } from '../actions/actions';
 
 const REQUIRED_FIELD_LABEL = "This field is required."
 
@@ -194,14 +194,18 @@ class Recipe extends Component {
     toggleSavedRecipeState = toggleFavorite => event => {
         let idKey = undefined;
         let valueKey = undefined;
+        let clearCacheFunc = null;
+        let { clearFavoritesCache, clearMealPlannerCache } = this.props;
 
         if (toggleFavorite) {
             idKey = 'savedRecipeFavoriteId';
             valueKey = 'savedRecipeIsFavorite';
+            clearCacheFunc = clearFavoritesCache;
         }
         else {
             idKey = 'savedRecipeMealPlannerId';
             valueKey = 'savedRecipeIsMealPlanner';
+            clearCacheFunc = clearMealPlannerCache;
         }
         let prevValue = this.state[valueKey];
         let savedRecipeId = this.state[idKey];
@@ -222,6 +226,9 @@ class Recipe extends Component {
                     this.setState({
                         [valueKey]: !prevValue
                     });
+                    if (clearCacheFunc) {
+                        clearCacheFunc();
+                    }
                 }
             })
             .catch(err => {
@@ -249,7 +256,10 @@ class Recipe extends Component {
                     this.setState({
                         [idKey]: responseJson.id,
                         [valueKey]: true
-                    })
+                    });
+                    if (clearCacheFunc) {
+                        clearCacheFunc();
+                    }
                 }
             })
             .catch(err => {
@@ -522,7 +532,9 @@ Recipe.propTypes = {
     modifyRecipe: PropTypes.func.isRequired,
     clearRecipe: PropTypes.func.isRequired,
     id: PropTypes.string,
-    newRecipe: PropTypes.bool.isRequired
+    newRecipe: PropTypes.bool.isRequired,
+    clearFavoritesCache:  PropTypes.func.isRequired,
+    clearMealPlannerCache:  PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state, ownProps) => {
@@ -536,4 +548,4 @@ const mapStateToProps = (state, ownProps) => {
     }
 }
 
-export default connect(mapStateToProps, { modifyRecipe, clearRecipe })(withStyles(styles, { withTheme: true })(Recipe));
+export default connect(mapStateToProps, { modifyRecipe, clearRecipe, clearFavoritesCache, clearMealPlannerCache })(withStyles(styles, { withTheme: true })(Recipe));
