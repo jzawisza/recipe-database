@@ -30,6 +30,10 @@ import { modifyRecipe, clearRecipe, clearFavoritesCache, clearMealPlannerCache }
 
 const REQUIRED_FIELD_LABEL = "This field is required."
 
+const INGREDIENTS_ID = "ingredients";
+const PREPARATION_ID = "preparation";
+const NOTES_ID = "notes";
+
 // Default number of rows for text areas that contain no text
 const DEFAULT_ROWS = 8;
 
@@ -74,6 +78,17 @@ class Recipe extends Component {
         super(props);
 
         this.persistChange = debounce(500, this.persistChange);
+
+        this.ingredientsRef = React.createRef();
+        this.preparationRef = React.createRef();
+        this.notesRef = React.createRef();
+        // Array mapping textarea refs to component IDs
+        // If you add a new ref, you MUST add it to this array!
+        this.refArray = {
+            [INGREDIENTS_ID]: this.ingredientsRef,
+            [PREPARATION_ID]: this.preparationRef,
+            [NOTES_ID]: this.notesRef
+        };
     }
 
     state = {
@@ -147,6 +162,25 @@ class Recipe extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         this.setHasRequiredFields(prevState);
+
+        // Workaround for issue with Material UI textareas where autofocus
+        // causes the cursor to jump to the beginning of the textarea
+        let initialStateChangeComponentId = this.state.initialStateChangeComponentId;        
+        if (initialStateChangeComponentId) {
+            // Only textarea components are added to refArray in the constructor
+            //  Any other element will be ignored
+            let elementRef = this.refArray[initialStateChangeComponentId];
+            if (elementRef && elementRef.current) {
+                // Explicitly position the cursor at the end of the text entered
+                // NOTE: this works for text that's copy-pasted or typed in manually
+                elementRef.current.selectionStart = elementRef.current.value.length;
+
+                // Reset the state
+                this.setState({
+                    initialStateChangeComponentId: null
+                })
+            }
+        }
     }
 
     setHasRequiredFields(prevState = {}) {
@@ -159,10 +193,17 @@ class Recipe extends Component {
     }
 
     handleChange = name => event => {
+        let initialStateChangeId = null;
+        if(!this.state[name]) {
+            initialStateChangeId = name;
+        }
+
         this.setState({
-            [name]: event.target.value
+            [name]: event.target.value,
+            initialStateChangeComponentId: initialStateChangeId
         });
-        this.persistChange(name, event.target.value);
+
+        this.persistChange(name, event.target.value);        
       };
 
     persistChange(name, value) {
@@ -457,7 +498,8 @@ class Recipe extends Component {
                             <FormControl className={classes.formControl} error={showIngredientsError} aria-describedby="ingredients-error-text">
                                 <InputLabel htmlFor="name">Ingredients</InputLabel>
                                 <Input
-                                    id="ingredients"
+                                    id={INGREDIENTS_ID}
+                                    inputRef={this.refArray[INGREDIENTS_ID]}
                                     onChange={this.handleChange('ingredients').bind(this)}
                                     fullWidth
                                     margin="dense"
@@ -475,7 +517,8 @@ class Recipe extends Component {
                             <FormControl className={classes.formControl} error={showPreparationError} aria-describedby="preparation-error-text">
                                 <InputLabel htmlFor="name">Preparation</InputLabel>
                                 <Input
-                                    id="preparation"
+                                    id={PREPARATION_ID}
+                                    inputRef={this.refArray[PREPARATION_ID]}
                                     onChange={this.handleChange('preparation').bind(this)}
                                     fullWidth
                                     margin="dense"
@@ -491,7 +534,8 @@ class Recipe extends Component {
 
                         <Grid item xs={12}>
                             <TextField
-                                id="notes"
+                                id={NOTES_ID}
+                                inputRef={this.refArray[NOTES_ID]}
                                 label="Notes"
                                 multiline
                                 autoFocus={true}
